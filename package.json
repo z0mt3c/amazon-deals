@@ -1,0 +1,27 @@
+{
+  "name": "amazon-lighting",
+  "version": "1.0.0",
+  "description": "",
+  "main": "babel.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^1.4.0",
+    "babel": "^5.8.19",
+    "babel-eslint": "^4.0.5",
+    "boom": "^2.8.0",
+    "hapi": "^8.8.0",
+    "hapi-swaggered": "^2.2.1",
+    "hapi-swaggered-ui": "^1.6.1",
+    "hoek": "^2.14.0",
+    "joi": "^6.6.1",
+    "lodash": "^3.10.0",
+    "wreck": "^6.0.0"
+  },
+  "standard": {
+    "parser": "babel-eslint"
+  }
+}
