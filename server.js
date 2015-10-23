@@ -19,8 +19,7 @@ server.connection({
 
 server.register([
   require('inert'),
-  require('vision'),
-  {
+  require('vision'), {
     register: require('hapi-swaggered'),
     options: {
       cache: false,
@@ -30,16 +29,14 @@ server.register([
         mode: 'path',
         pathLevel: 1
       },
-      tags: {
-      },
+      tags: {},
       info: {
         title: 'Amazon Deals',
         description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
         version: '1.0'
       }
     }
-  },
-  {
+  }, {
     register: require('hapi-swaggered-ui'),
     options: {
       title: 'Amazon Deals',
@@ -49,13 +46,14 @@ server.register([
         validatorUrl: null
       }
     }
-  }], {
+  }
+], {
   select: 'api'
-}, function (err) {
+}, function(err) {
   if (err) {
     throw err
   }
-
+  /*
   server.route({
     method: 'GET',
     path: '/{param*}',
@@ -63,6 +61,15 @@ server.register([
       directory: {
         path: './public'
       }
+    }
+  })
+  */
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: function(request, reply) {
+      reply.redirect('/docs');
     }
   })
 
@@ -73,7 +80,7 @@ server.register([
     routes: {
       prefix: '/api'
     }
-  }, function (error) {
+  }, function(error) {
     if (error) {
       throw error
     }
