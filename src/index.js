@@ -22,6 +22,10 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
 var internals = {
   updateRepository: function (next) {
     internals.fetch('dealsByState.EXPIRED', function (data) {
+      if (!data) {
+        return next(null, { status: 'EMPTY' })
+      }
+
       var results = _.reduce(data, function (memo, deal) {
         return _.reduce(deal.items, function (memo, item) {
           var item = _.extend({}, _.pick(deal, pickFieldsDeal), _.pick(item, pickFieldsItem))
@@ -135,7 +139,7 @@ module.exports.register = function (plugin, options, next) {
         })
       }
     }
-  })  
+  })
 
   plugin.route({
     method: 'GET',
@@ -152,14 +156,14 @@ module.exports.register = function (plugin, options, next) {
         var query = {}
 
         if (request.query.title) {
-          query.title = { $regex: request.query.title };
-        }
-        
-        if (request.query._id) {
-          query._id = { $regex: request.query._id };
+          query.title = { $regex: request.query.title }
         }
 
-        db.collection('deals').find(query).toArray(function(error, results) {
+        if (request.query._id) {
+          query._id = { $regex: request.query._id }
+        }
+
+        db.collection('deals').find(query).toArray(function (error, results) {
           reply(results)
         })
       }
