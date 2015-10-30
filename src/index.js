@@ -42,7 +42,8 @@ var internals = {
           $set: _.pick(item, ['primaryImage', 'egressUrl', 'description', 'title']),
           $addToSet: { prices: item }
         }, { upsert: true, w: 1 }, function (error, result) {
-          modified += result.result.nModified
+          console.log(result.result)
+          modified += result.result.nModified || 0
           inserted += result.result.upserted ? result.result.upserted.length : 0
           cb()
         })
