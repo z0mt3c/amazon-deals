@@ -27,7 +27,7 @@ var internals = {
       }
 
       var results = _.reduce(data, function (memo, deal) {
-        return _.reduce(deal.items, function (memo, item) {
+        return _.reduce(deal ? deal.items : [], function (memo, item) {
           var item = _.extend({}, _.pick(deal, pickFieldsDeal), _.pick(item, pickFieldsItem))
           memo.push(item)
           return memo
@@ -42,7 +42,6 @@ var internals = {
           $set: _.pick(item, ['primaryImage', 'egressUrl', 'description', 'title']),
           $addToSet: { prices: item }
         }, { upsert: true, w: 1 }, function (error, result) {
-          console.log(result.result)
           modified += result.result.nModified || 0
           inserted += result.result.upserted ? result.result.upserted.length : 0
           cb()
