@@ -50,11 +50,10 @@ export default class Amazon {
   }
 
   getDealsFor(prefix, next) {
-    this.getDealMetadata(function(error, data) {
+    this.getDealMetadata(function (error, data) {
       if (error) {
         return next(error)
       }
-
       var deals = Hoek.reach(data, prefix)
       return next(null, deals)
     })
@@ -63,7 +62,9 @@ export default class Amazon {
   getDeals(ids, next) {
     Hoek.assert(!!ids || ids.length < 200, 'Only 200 dealIds per call allowed')
     var url = 'https://www.amazon.de/xa/dealcontent/v2/GetDeals?nocache=' + new Date().getTime()
-    var dealTargets = _.map(ids, function(id) { return { dealID: id }; })
+    var dealTargets = _.map(ids, function (id) {
+      return { dealID: id }
+    })
     var payload = _.extend({
       dealTargets: dealTargets,
       responseSize: 'ALL',
@@ -85,7 +86,9 @@ export default class Amazon {
   getDealStatus(ids, next) {
     Hoek.assert(!!ids || ids.length < 200, 'Only 200 dealIds per call allowed')
     var url = 'https://www.amazon.de/xa/dealcontent/v2/GetDealStatus?nocache=' + new Date().getTime()
-    var dealTargets = _.map(ids, function(id) { return { dealID: id, itemIDs: null }; })
+    var dealTargets = _.map(ids, function (id) {
+      return { dealID: id, itemIDs: null }
+    })
     var payload = _.extend({
       dealTargets: dealTargets,
       responseSize: 'STATUS_ONLY',

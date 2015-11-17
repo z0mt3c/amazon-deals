@@ -20,16 +20,18 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
 })
 
 var internals = {
-  updateRepository: function (next) {
-    internals.fetch('dealsByState.EXPIRED', function (data) {
+  updateRepository(next) {
+    internals.fetch('dealsByType.LIGHTNING_DEAL', function (data) {
       if (!data) {
         return next(null, { status: 'EMPTY' })
       }
 
       var results = _.reduce(data, function (memo, deal) {
         return _.reduce(deal ? deal.items : [], function (memo, item) {
-          var item = _.extend({}, _.pick(deal, pickFieldsDeal), _.pick(item, pickFieldsItem))
-          memo.push(item)
+          if (item && item.dealPrice != null) {
+            item = _.extend({ found: new Date() }, _.pick(deal, pickFieldsDeal), _.pick(item, pickFieldsItem))
+            memo.push(item)
+          }
           return memo
         }, memo)
       }, [])
@@ -38,13 +40,21 @@ var internals = {
       var inserted = 0
 
       async.eachLimit(results, 1, function (item, cb) {
-        db.collection('deals').update({ _id: item.itemID }, {
-          $set: _.pick(item, ['primaryImage', 'egressUrl', 'description', 'title']),
-          $addToSet: { prices: item }
-        }, { upsert: true, w: 1 }, function (error, result) {
-          modified += result.result.nModified || 0
-          inserted += result.result.upserted ? result.result.upserted.length : 0
-          cb()
+        db.collection('deals').findOne({ _id: item.itemID, 'prices.dealID': item.dealID }, {fields: {_id: 1}}, function (error, document) {
+          if (!error && document == null) {
+            db.collection('deals').update({ _id: item.itemID }, {
+              $set: _.pick(item, ['primaryImage', 'egressUrl', 'description', 'title']),
+              $addToSet: { prices: item }
+            }, { upsert: true, w: 1 }, function (error, result) {
+              if (!error) {
+                modified += result.result.nModified || 0
+                inserted += result.result.upserted ? result.result.upserted.length : 0
+              }
+              return cb()
+            })
+          } else {
+            return cb()
+          }
         })
       }, function () {
         next(null, {
@@ -56,7 +66,7 @@ var internals = {
       })
     })
   },
-  fetchChunked( fn, items, pageSize, limit, next) {
+  fetchChunked(fn, items, pageSize, limit, next) {
     var chunks = _.chunk(items, pageSize || 200)
 
     async.mapLimit(chunks, limit || 1, fn, function (error, results) {
@@ -75,12 +85,11 @@ var internals = {
       }, {}))
     })
   },
-  fetch( prefix, reply) {
+  fetch(prefix, reply) {
     amazon.getDealsFor(prefix, function (error, data) {
       if (error) {
         return reply(Boom.badImplementation('Error fetching deals', error))
       }
-
       internals.fetchChunked(amazon.getDeals.bind(amazon), data, 200, 1, function (error, data) {
         if (error) {
           return reply(Boom.badImplementation('Error fetching deals', error))
@@ -103,7 +112,7 @@ var internals = {
   }
 }
 
-new CronJob('0 0 * * * *', function () {
+var job = new CronJob('30 */9 8-20 * * *', function () {
   internals.updateRepository(function (result) {
     console.log(result)
   })
@@ -164,6 +173,10 @@ module.exports.register = function (plugin, options, next) {
         }
 
         db.collection('deals').find(query).toArray(function (error, results) {
+          if (error) {
+            return reply(Boom.badImplementation('Error fetching deals', error))
+          }
+
           reply(results)
         })
       }

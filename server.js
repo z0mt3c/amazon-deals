@@ -1,6 +1,4 @@
 import Hapi from 'hapi'
-import hapiSwaggered from 'hapi-swaggered'
-import hapiSwaggeredUi from 'hapi-swaggered-ui'
 
 var server = new Hapi.Server()
 
@@ -49,7 +47,7 @@ server.register([
   }
 ], {
   select: 'api'
-}, function(err) {
+}, function (err) {
   if (err) {
     throw err
   }
@@ -68,8 +66,8 @@ server.register([
   server.route({
     method: 'GET',
     path: '/',
-    handler: function(request, reply) {
-      reply.redirect('/docs');
+    handler: function (request, reply) {
+      reply.redirect('/docs')
     }
   })
 
@@ -80,11 +78,11 @@ server.register([
     routes: {
       prefix: '/api'
     }
-  }, function(error) {
+  }, function (error) {
     if (error) {
       throw error
     }
   })
 })
 
-export default server
+module.exports = server

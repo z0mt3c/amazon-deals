@@ -1,4 +1,4 @@
-require('babel/register')
+require('babel-core/register')
 var server = require('./server.js')
 
 server.start(function () {
