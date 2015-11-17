@@ -13,7 +13,7 @@ var pickFields = ['dealID', 'description', 'msToEnd', 'msToFeatureEnd', 'msToSta
 var pickFieldsDeal = ['dealID', 'description', 'title', 'type']
 var pickFieldsItem = ['currentPrice', 'currencyCode', 'dealPrice', 'egressUrl', 'isFulfilledByAmazon', 'itemID', 'merchantName', 'merchantID', 'primaryImage']
 var db
-var lastUpdate = {};
+var lastUpdate = { time: new Date(), status: 'initialized'}
 
 MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon', function (error, mongodb) {
   assert.equal(null, error)
@@ -184,6 +184,21 @@ module.exports.register = function (plugin, options, next) {
 
           reply(results)
         })
+      }
+    }
+  })
+
+  plugin.route({
+    method: 'GET',
+    path: '/status',
+    config: {
+      tags: ['api'],
+      handler: function (request, reply) {
+        var currentDate = new Date()
+        var hours = currentDate.getHours()
+        var diff = currentDate.getTime() - lastUpdate.time.getTime()
+
+        reply(lastUpdate).code(hours > 8 && hours < 21 && diff > 3600000 ? 501 : 200)
       }
     }
   })
