@@ -74,7 +74,7 @@ var internals = {
     })
   },
   fetchChunked(fn, items, pageSize, limit, next) {
-    var chunks = _.chunk(items, pageSize || 200)
+    var chunks = _.chunk(items, pageSize || 100)
 
     async.mapLimit(chunks, limit || 1, fn, function (error, results) {
       if (error) {
@@ -97,7 +97,7 @@ var internals = {
       if (error) {
         return reply(Boom.badImplementation('Error fetching deals', error))
       }
-      internals.fetchChunked(amazon.getDeals.bind(amazon), data, 200, 1, function (error, data) {
+      internals.fetchChunked(amazon.getDeals.bind(amazon), data, 100, 1, function (error, data) {
         if (error) {
           return reply(Boom.badImplementation('Error fetching deals', error))
         }
@@ -291,7 +291,7 @@ module.exports.register = function (plugin, options, next) {
       tags: ['api'],
       validate: {
         query: Joi.object({
-          dealIds: Joi.array().items(Joi.string()).max(200).meta({
+          dealIds: Joi.array().items(Joi.string()).max(100).meta({
             swaggerType: 'string'
           })
         })
