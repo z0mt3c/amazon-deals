@@ -146,7 +146,7 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/inventory/update',
+    path: '/update',
     config: {
       tags: ['api'],
       handler: function (request, reply) {
@@ -205,7 +205,7 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/deal/category/{categoryId}/deal',
+    path: '/internal/deal/category/{categoryId}/deal',
     config: {
       tags: ['api'],
       validate: {
@@ -221,7 +221,7 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/deal/state/{state}/deal',
+    path: '/internal/deal/state/{state}/deal',
     config: {
       tags: ['api'],
       validate: {
@@ -237,7 +237,7 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/deal/type/{type}/deal',
+    path: '/internal/deal/type/{type}/deal',
     config: {
       tags: ['api'],
       validate: {
@@ -253,7 +253,7 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/deal/accessType/{accessType}/deal',
+    path: '/internal/deal/accessType/{accessType}/deal',
     config: {
       tags: ['api'],
       validate: {
