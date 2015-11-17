@@ -13,6 +13,7 @@ var pickFields = ['dealID', 'description', 'msToEnd', 'msToFeatureEnd', 'msToSta
 var pickFieldsDeal = ['dealID', 'description', 'title', 'type']
 var pickFieldsItem = ['currentPrice', 'currencyCode', 'dealPrice', 'egressUrl', 'isFulfilledByAmazon', 'itemID', 'merchantName', 'merchantID', 'primaryImage']
 var db
+var lastUpdate = {};
 
 MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon', function (error, mongodb) {
   assert.equal(null, error)
@@ -20,7 +21,7 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
   db.collection('deals').ensureIndex({'prices': 1}, function () {})
   db.collection('deals').ensureIndex({'prices.dealID': 1}, function () {})
   db.collection('deals').ensureIndex({'prices.itemID': 1}, function () {})
-  db.collection('deals').ensureIndex({'title': 'text'}, function () {})
+  db.collection('deals').ensureIndex({'title': 1}, function () {})
 })
 
 var internals = {
@@ -61,12 +62,14 @@ var internals = {
           }
         })
       }, function () {
-        next(null, {
+        lastUpdate = {
           status: 'OK',
           total: results.length,
           modified: modified,
-          inserted: inserted
-        })
+          inserted: inserted,
+          time: new Date()
+        }
+        next(null, lastUpdate)
       })
     })
   },
@@ -171,7 +174,7 @@ module.exports.register = function (plugin, options, next) {
         conditions.push({_id: q})
         conditions.push({'prices.itemID': q})
         conditions.push({'prices.dealID': q})
-        conditions.push({$text: {$search: q, $language: 'none'}})
+        conditions.push({'title': { $regex: q, $options: 'i' }})
         query = { $or: conditions }
 
         db.collection('deals').find(query).toArray(function (error, results) {
