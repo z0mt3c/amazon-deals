@@ -17,6 +17,10 @@ var db
 MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon', function (error, mongodb) {
   assert.equal(null, error)
   db = mongodb
+  db.collection('deals').ensureIndex({'prices': 1}, function () {})
+  db.collection('deals').ensureIndex({'prices.dealID': 1}, function () {})
+  db.collection('deals').ensureIndex({'prices.itemID': 1}, function () {})
+  db.collection('deals').ensureIndex({'title': 'text'}, function () {})
 })
 
 var internals = {
@@ -152,25 +156,23 @@ module.exports.register = function (plugin, options, next) {
 
   plugin.route({
     method: 'GET',
-    path: '/inventory/find',
+    path: '/deals',
     config: {
       tags: ['api'],
       validate: {
         query: Joi.object({
-          title: Joi.string().optional(),
-          _id: Joi.string().optional()
+          q: Joi.string().required()
         })
       },
       handler: function (request, reply) {
         var query = {}
-
-        if (request.query.title) {
-          query.title = { $regex: request.query.title }
-        }
-
-        if (request.query._id) {
-          query._id = { $regex: request.query._id }
-        }
+        var conditions = []
+        var q = request.query.q
+        conditions.push({_id: q})
+        conditions.push({'prices.itemID': q})
+        conditions.push({'prices.dealID': q})
+        conditions.push({$text: {$search: q, $language: 'none'}})
+        query = { $or: conditions }
 
         db.collection('deals').find(query).toArray(function (error, results) {
           if (error) {
