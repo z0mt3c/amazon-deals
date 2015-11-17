@@ -120,8 +120,8 @@ var internals = {
 }
 
 var job = new CronJob('30 */9 8-20 * * *', function () {
-  internals.updateRepository(function (result) {
-    console.log(result)
+  internals.updateRepository(function (error, result) {
+    console.log(error || result)
   })
 }, null, true, 'Europe/Berlin')
 
