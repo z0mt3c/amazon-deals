@@ -13,7 +13,6 @@ var pickFields = ['dealID', 'description', 'msToEnd', 'msToFeatureEnd', 'msToSta
 var pickFieldsDeal = ['dealID', 'description', 'title', 'type']
 var pickFieldsItem = ['currentPrice', 'currencyCode', 'dealPrice', 'egressUrl', 'isFulfilledByAmazon', 'itemID', 'merchantName', 'merchantID', 'primaryImage']
 var db
-var lastUpdate = { time: new Date(), status: 'initialized'}
 
 MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon', function (error, mongodb) {
   assert.equal(null, error)
@@ -24,7 +23,22 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
   db.collection('deals').ensureIndex({'title': 1}, function () {})
 })
 
+var updates = []
+var lastUpdate
+var keepLastUpdatesCount = 100
+
 var internals = {
+  addUpdate(update) {
+    if (update) {
+      update.time = new Date()
+      lastUpdate = update
+      updates.push(update)
+    }
+
+    if (updates.length > keepLastUpdatesCount) {
+      updates = updates.slice(updates.length - keepLastUpdatesCount)
+    }
+  },
   updateRepository(next) {
     internals.fetch('dealsByType.LIGHTNING_DEAL', function (data) {
       if (!data) {
@@ -62,14 +76,15 @@ var internals = {
           }
         })
       }, function () {
-        lastUpdate = {
+        var updateInfo = {
           status: 'OK',
           total: results.length,
           modified: modified,
           inserted: inserted,
           time: new Date()
         }
-        next(null, lastUpdate)
+        internals.addUpdate(updateInfo)
+        next(null, updateInfo)
       })
     })
   },
@@ -118,6 +133,8 @@ var internals = {
     })
   }
 }
+
+internals.addUpdate({ status: 'initialized' })
 
 var job = new CronJob('30 */9 8-20 * * *', function () {
   internals.updateRepository(function (error, result) {
@@ -197,8 +214,9 @@ module.exports.register = function (plugin, options, next) {
         var currentDate = new Date()
         var hours = currentDate.getHours()
         var diff = currentDate.getTime() - lastUpdate.time.getTime()
-
-        reply(lastUpdate).code(hours > 8 && hours < 21 && diff > 3600000 ? 501 : 200)
+        var reverse = updates.slice(0)
+        reverse.reverse()
+        reply(reverse).code(hours > 8 && hours < 21 && diff > 3600000 ? 501 : 200)
       }
     }
   })
