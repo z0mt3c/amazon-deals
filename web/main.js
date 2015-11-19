@@ -25,40 +25,57 @@ var History = React.createClass({
   getInitialState() {
     return {
       query: '',
-      message: null,
+      windowWidth: window.innerWidth,
+      message: 'Suchbegriff eingeben (mindestens 3 Zeichen)',
       dataList: []
     }
   },
+
+  handleResize(e) {
+    this.setState({windowWidth: window.innerWidth})
+  },
+
+  componentDidMount() {
+    window.addEventListener('resize', this.handleResize)
+  },
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleResize)
+  },
+
   search(event) {
     var query = event.target.value
     this.setState({ query: query })
 
     if (query.length >= 3) {
       search(query, function (err, res) {
-        this.setState({ dataList: res.body || [] })
+        var result = res.body || []
+        this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
       }.bind(this))
     } else {
-      this.setState({ dataList: [], message: 'Enter search query (min 3 characters)' })
+      this.setState({ dataList: [], message: 'Suchbegriff eingeben (mindestens 3 Zeichen)' })
     }
   },
   render() {
+    var message = null
+
+    if (this.state.message) {
+      message = <div style={{ padding: 50, textAlign: 'center'}}>
+                  {this.state.message}
+                </div>
+    }
+
     return (<div>
               <Toolbar>
-                <ToolbarGroup key={0} float='left'>
-                  <ToolbarTitle text='Search:' />
-                  <TextField hintText='Query' value={this.state.query} onChange={this.search} />
-                </ToolbarGroup>
+                  <TextField hintText='Begriff / Artikelnummer eingeben' value={this.state.query} onChange={this.search} fullWidth={true}/>
               </Toolbar>
-              <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}}  cols={5}>
-                {this.state.dataList.map(item => <GridTile
-                 key={item._id}
-                 title={item.title}
-                 subtitle={item.prices.map(price => <span key={price.dealID}><b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b> </span> )}
-                 actionIcon={<IconButton iconClassName='muidocs-icon-custom-github' tooltip='GitHub'></IconButton>}>
-                 <LazyLoad>
-                   <img src={item.primaryImage} width='100%' />
-                 </LazyLoad>
-               </GridTile>)}
+              {message}
+              <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth/420)+1}>
+                {this.state.dataList.map(item => <GridTile key={item._id} title={item.title} subtitle={item.prices.map(price => <span key={price.dealID}><b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></span>)} actionIcon={<IconButton iconClassName='muidocs-icon-custom-github' tooltip='GitHub'></IconButton>}>
+                                                   <LazyLoad>
+                                                     <img src={item.primaryImage} width='100%' />
+                                                   </LazyLoad>
+                                                 </GridTile>)}
               </GridList>
             </div>)
   }
@@ -66,7 +83,7 @@ var History = React.createClass({
 
 ReactDOM.render(
   <div>
-    <AppBar title='Amazon Lighting Dealz' />
+    <AppBar title='Amazon Blitzangebote' />
     <History/>
   </div>,
   document.getElementById('example')
