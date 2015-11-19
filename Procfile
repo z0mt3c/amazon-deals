@@ -1,1 +1,1 @@
-web: node babel.js
+web: npm run-script build && node babel.js

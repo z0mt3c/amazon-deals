@@ -17,6 +17,7 @@ server.connection({
 
 server.register([
   require('inert'),
+  require('h2o2'),
   require('vision'), {
     register: require('hapi-swaggered'),
     options: {
@@ -51,7 +52,7 @@ server.register([
   if (err) {
     throw err
   }
-  /*
+
   server.route({
     method: 'GET',
     path: '/{param*}',
@@ -61,8 +62,22 @@ server.register([
       }
     }
   })
-  */
 
+  server.route({
+    method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    path: '/images/{p*}',
+    config: {
+      handler: {
+        proxy: {
+          host: 'images-na.ssl-images-amazon.com',
+          protocol: 'https',
+          passThrough: true
+        }
+      }
+    }
+  })
+
+  /*
   server.route({
     method: 'GET',
     path: '/',
@@ -70,6 +85,7 @@ server.register([
       reply.redirect('/docs')
     }
   })
+  */
 
   server.register({
     register: require('./src'),

@@ -194,12 +194,15 @@ module.exports.register = function (plugin, options, next) {
         conditions.push({'title': { $regex: q, $options: 'i' }})
         query = { $or: conditions }
 
-        db.collection('deals').find(query).toArray(function (error, results) {
+        db.collection('deals').find(query).limit(50).toArray(function (error, results) {
           if (error) {
             return reply(Boom.badImplementation('Error fetching deals', error))
           }
 
-          reply(results)
+          reply(_.map(results, function(item) {
+            item.primaryImage = item.primaryImage.substr(39)
+            return item
+          }))
         })
       }
     }
