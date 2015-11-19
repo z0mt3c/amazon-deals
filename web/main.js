@@ -71,7 +71,8 @@ var History = React.createClass({
               </Toolbar>
               {message}
               <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth/420)+1}>
-                {this.state.dataList.map(item => <GridTile key={item._id} title={item.title} subtitle={item.prices.map(price => <span key={price.dealID}><b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></span>)} actionIcon={<IconButton iconClassName='muidocs-icon-custom-github' tooltip='GitHub'></IconButton>}>
+                {this.state.dataList.map(item => <GridTile key={item._id} title={item.title} subtitle={item.prices.map(price => 
+                    <div key={price.dealID}><b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></div>)} actionIcon={<IconButton iconClassName='muidocs-icon-custom-github' tooltip='GitHub'></IconButton>}>
                                                    <LazyLoad>
                                                      <img src={item.primaryImage} width='100%' />
                                                    </LazyLoad>
