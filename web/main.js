@@ -13,8 +13,8 @@ require('react-tap-event-plugin')()
 let superagent = require('superagent')
 let LazyLoad = require('react-lazy-load')
 let _ = require('lodash')
-let Time = require('react-time')
 let LineChart = require('react-chartjs').Line
+let moment = require('moment')
 
 let search = _.throttle(function (query, next) {
   superagent.get('api/deals')
@@ -85,32 +85,30 @@ var History = React.createClass({
       barShowStroke: true,
       barStrokeWidth: 2,
       barValueSpacing: 5,
-      barDatasetSpacing: 1,
-      legendTemplate: '<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].fillColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>'
+      barDatasetSpacing: 1
     }
 
     let chartData = {
-      labels: _.map(item.prices, function (price) { return price.found || 'Unbekannt' }),
+      labels: _.map(item.prices, function (price) { return price.found ? moment(price.found).format('DD.MM.YYYY') : 'Unbekannt' }),
       datasets: [{
-          label: 'Deal-Preis',
-          fillColor: 'rgba(220,220,220,0.2)',
-          strokeColor: 'rgba(220,220,220,1)',
-          pointColor: 'rgba(220,220,220,1)',
-          pointStrokeColor: '#fff',
-          pointHighlightFill: '#fff',
-          pointHighlightStroke: 'rgba(220,220,220,1)',
-          data: _.map(item.prices, function (price) { return price.dealPrice || '?' })
-        },
-        {
-          label: 'Normalpreis',
-          fillColor: 'rgba(151,187,205,0.2)',
-          strokeColor: 'rgba(151,187,205,1)',
-          pointColor: 'rgba(151,187,205,1)',
-          pointStrokeColor: '#fff',
-          pointHighlightFill: '#fff',
-          pointHighlightStroke: 'rgba(151,187,205,1)',
-          data: _.map(item.prices, function (price) { return price.currentPrice || '?' })
-        }]
+        label: 'Normalpreis',
+        fillColor: 'rgba(151,187,205,0.2)',
+        strokeColor: 'rgba(151,187,205,1)',
+        pointColor: 'rgba(151,187,205,1)',
+        pointStrokeColor: '#fff',
+        pointHighlightFill: '#fff',
+        pointHighlightStroke: 'rgba(151,187,205,1)',
+        data: _.map(item.prices, function (price) { return price.currentPrice || '?' })
+      }, {
+        label: 'Deal-Preis',
+        fillColor: 'rgba(220,220,220,0.2)',
+        strokeColor: 'rgba(220,220,220,1)',
+        pointColor: 'rgba(220,220,220,1)',
+        pointStrokeColor: '#fff',
+        pointHighlightFill: '#fff',
+        pointHighlightStroke: 'rgba(220,220,220,1)',
+        data: _.map(item.prices, function (price) { return price.dealPrice || '?' })
+      }]
     }
 
     return (<Dialog
@@ -120,12 +118,8 @@ var History = React.createClass({
         autoScrollBodyContent={true}
         open={this.state.dataItem != null}
         onRequestClose={this._handleRequestClose}>
-        <div style={{minHeight: '300'}}>
-          Show price development (todo: diagram)
-          <LineChart data={chartData} options={chartOptions} width='600' height='250'/>
-          <ul>
-            {item.prices.map(price => <li key={price.dealID}>{price.found != null ? <Time value={price.found} format='DD.MM.YYYY HH:mm'/> : null} <b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></li>)}
-          </ul>
+        <div style={{minHeight: '345'}}>
+          <LineChart data={chartData} options={chartOptions} width='700' height='345'/>
         </div>
       </Dialog>)
   },
@@ -154,16 +148,17 @@ var History = React.createClass({
               </Toolbar>
               {message}
               <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth/420)+1}>
-                {this.state.dataList.map(function(item) {
+                {this.state.dataList.map(function (item) {
                   var itemClicked = self.onItemClicked.bind(self, item)
+                  var price = _.last(item.prices)
+
                   return <GridTile key={item._id} title={item.title}
                     onClick={itemClicked}
-                    subtitle={item.prices.map(price => <div key={price.dealID}><b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></div>)} 
-                    actionIcon={<IconButton iconClassName='muidocs-icon-custom-github' tooltip='GitHub'></IconButton>}>
+                    subtitle={<div key={price.dealID}>Letzter Preis: <b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></div>}>
                        <LazyLoad>
                          <img src={item.primaryImage} width='100%' />
                        </LazyLoad>
-                  </GridTile>})}
+                  </GridTile> })}
               </GridList>
               {this.renderDialog()}
             </div>)

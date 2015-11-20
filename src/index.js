@@ -194,7 +194,7 @@ module.exports.register = function (plugin, options, next) {
         conditions.push({'title': { $regex: q, $options: 'i' }})
         query = { $or: conditions }
 
-        db.collection('deals').find(query).limit(50).toArray(function (error, results) {
+        db.collection('deals').find(query).limit(100).toArray(function (error, results) {
           if (error) {
             return reply(Boom.badImplementation('Error fetching deals', error))
           }
