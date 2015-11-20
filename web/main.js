@@ -14,6 +14,7 @@ let superagent = require('superagent')
 let LazyLoad = require('react-lazy-load')
 let _ = require('lodash')
 let Time = require('react-time')
+let LineChart = require('react-chartjs').Line
 
 let search = _.throttle(function (query, next) {
   superagent.get('api/deals')
@@ -74,6 +75,44 @@ var History = React.createClass({
         onTouchTap={this.handleDialogClose} />
     ]
 
+    let chartOptions = {
+      scaleBeginAtZero: true,
+      scaleShowGridLines: true,
+      scaleGridLineColor: 'rgba(0,0,0,.05)',
+      scaleGridLineWidth: 1,
+      scaleShowHorizontalLines: true,
+      scaleShowVerticalLines: true,
+      barShowStroke: true,
+      barStrokeWidth: 2,
+      barValueSpacing: 5,
+      barDatasetSpacing: 1,
+      legendTemplate: '<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<datasets.length; i++){%><li><span style=\"background-color:<%=datasets[i].fillColor%>\"></span><%if(datasets[i].label){%><%=datasets[i].label%><%}%></li><%}%></ul>'
+    }
+
+    let chartData = {
+      labels: _.map(item.prices, function (price) { return price.found || 'Unbekannt' }),
+      datasets: [{
+          label: 'Deal-Preis',
+          fillColor: 'rgba(220,220,220,0.2)',
+          strokeColor: 'rgba(220,220,220,1)',
+          pointColor: 'rgba(220,220,220,1)',
+          pointStrokeColor: '#fff',
+          pointHighlightFill: '#fff',
+          pointHighlightStroke: 'rgba(220,220,220,1)',
+          data: _.map(item.prices, function (price) { return price.dealPrice || '?' })
+        },
+        {
+          label: 'Normalpreis',
+          fillColor: 'rgba(151,187,205,0.2)',
+          strokeColor: 'rgba(151,187,205,1)',
+          pointColor: 'rgba(151,187,205,1)',
+          pointStrokeColor: '#fff',
+          pointHighlightFill: '#fff',
+          pointHighlightStroke: 'rgba(151,187,205,1)',
+          data: _.map(item.prices, function (price) { return price.currentPrice || '?' })
+        }]
+    }
+
     return (<Dialog
         title={this.state.dataItem ? this.state.dataItem.title : 'Nothing'}
         actions={customActions}
@@ -81,8 +120,9 @@ var History = React.createClass({
         autoScrollBodyContent={true}
         open={this.state.dataItem != null}
         onRequestClose={this._handleRequestClose}>
-        <div style={{height: '500'}}>
+        <div style={{minHeight: '300'}}>
           Show price development (todo: diagram)
+          <LineChart data={chartData} options={chartOptions} width='600' height='250'/>
           <ul>
             {item.prices.map(price => <li key={price.dealID}>{price.found != null ? <Time value={price.found} format='DD.MM.YYYY HH:mm'/> : null} <b><strike>{price.currentPrice} {price.currencyCode}</strike> {price.dealPrice} {price.currencyCode}</b></li>)}
           </ul>
