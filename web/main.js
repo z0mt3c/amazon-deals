@@ -16,12 +16,14 @@ let _ = require('lodash')
 let LineChart = require('react-chartjs').Line
 let moment = require('moment')
 
-let search = _.throttle(function (query, next) {
+let _search = function (query, next) {
   superagent.get('api/deals')
     .query({ q: query })
     .set('Accept', 'application/json')
     .end(next)
-}, 300, { leading: false, trailing: true })
+}
+
+let search = _.throttle(_search, 1000, { leading: false, trailing: true })
 
 var History = React.createClass({
   getInitialState() {
@@ -46,17 +48,22 @@ var History = React.createClass({
     window.removeEventListener('resize', this.handleResize)
   },
 
-  search(event) {
+  _handleChange(event) {
     var query = event.target.value
-    this.setState({ query: query })
+    this.setState({ query: query, dataList: [], message: 'Suche mit ENTER bestätigen (mindestens 3 Zeichen)' })
+  },
 
-    if (query.length >= 3) {
-      search(query, function (err, res) {
-        var result = res.body || []
-        this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
-      }.bind(this))
-    } else {
-      this.setState({ dataList: [], message: 'Suchbegriff eingeben (mindestens 3 Zeichen)' })
+  _handleKeyPress(event) {
+    var query = this.state.query
+    if (event.key === 'Enter') {
+      if (query.length >= 3) {
+        _search(query, function (err, res) {
+          var result = res.body || []
+          this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
+        }.bind(this))
+      } else {
+        this.setState({ dataList: [], message: 'Suchbegriff eingeben (mindestens 3 Zeichen)' })
+      }
     }
   },
 
@@ -144,7 +151,7 @@ var History = React.createClass({
     var self = this
     return (<div>
               <Toolbar>
-                  <TextField hintText='Begriff / Artikelnummer eingeben' value={this.state.query} onChange={this.search} fullWidth={true}/>
+                  <TextField hintText='Begriff / Artikelnummer eingeben' value={this.state.query} onChange={this._handleChange} fullWidth={true} onKeyPress={this._handleKeyPress}/>
               </Toolbar>
               {message}
               <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth/420)+1}>
