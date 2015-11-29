@@ -136,7 +136,7 @@ var internals = {
 
 internals.addUpdate({ status: 'initialized' })
 
-var job = new CronJob('30 */9 8-20 * * *', function () {
+var job = new CronJob('30 */9 8-22 * * *', function () {
   internals.updateRepository(function (error, result) {
     console.log(error || result)
   })
