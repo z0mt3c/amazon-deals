@@ -118,15 +118,20 @@ var History = React.createClass({
       }]
     }
 
+
+    var width = window.innerWidth < 400 ? window.innerWidth / 1.8 : 700
+    var height = width * 345 / 700
+    var title = this.state.dataItem ? this.state.dataItem.title : 'Nothing'
+
     return (<Dialog
-        title={this.state.dataItem ? this.state.dataItem.title : 'Nothing'}
+        title={title.length > 50 ? title.substr(0, 40) : title}
         actions={customActions}
         autoDetectWindowHeight={true}
         autoScrollBodyContent={true}
         open={this.state.dataItem != null}
         onRequestClose={this._handleRequestClose}>
-        <div style={{minHeight: '345'}}>
-          <LineChart data={chartData} options={chartOptions} width='700' height='345'/>
+        <div style={{minHeight: height}}>
+          <LineChart data={chartData} options={chartOptions} width={width} height={height}/>
         </div>
       </Dialog>)
   },
