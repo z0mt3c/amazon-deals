@@ -1,15 +1,17 @@
 {
-  "name": "amazon-lighting",
+  "name": "amazon-lightning",
   "version": "1.0.0",
-  "description": "",
+  "description": "stuff",
   "main": "babel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
-    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js"
+    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
+    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
+    "start": "node server.js"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "z0mt3c",
+  "license": "MIT",
   "dependencies": {
     "async": "^1.5.0",
     "babel": "^6.1.18",
@@ -46,5 +48,18 @@
   "standard": {
     "parser": "babel-eslint"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://z0mt3c@github.com/z0mt3c/amazon-deals.git"
+  },
+  "keywords": [
+    "amazon",
+    "lightning",
+    "deals"
+  ],
+  "bugs": {
+    "url": "https://github.com/z0mt3c/amazon-deals/issues"
+  },
+  "homepage": "https://github.com/z0mt3c/amazon-deals#readme"
 }
