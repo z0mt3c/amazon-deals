@@ -79,7 +79,7 @@ var History = React.createClass({
         key='close'
         label='Close'
         primary={true}
-        onTouchTap={this.handleDialogClose} />
+        onClick={this.handleDialogClose} />
     ]
 
     let chartOptions = {
