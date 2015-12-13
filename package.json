@@ -35,6 +35,7 @@
     "material-ui": "0.14.0-rc1",
     "moment": "^2.10.6",
     "mongodb": "^2.1.0",
+    "node-telegram-bot-api": "^0.17.0",
     "react": "^0.14.3",
     "react-chartjs": "^0.6.0",
     "react-dom": "^0.14.3",

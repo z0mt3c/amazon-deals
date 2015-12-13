@@ -23,11 +23,18 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
   db.collection('deals').ensureIndex({'title': 1}, function () {})
 })
 
+var bot = process.env.TELEGRAM_TOKEN ? require('./bot.js') : null
+
 var updates = []
 var lastUpdate
 var keepLastUpdatesCount = 100
 
 var internals = {
+  notify(deal) {
+    if (bot != null) {
+      bot.notify(deal)
+    }
+  },
   addUpdate(update) {
     if (update) {
       update.time = new Date()
@@ -66,8 +73,13 @@ var internals = {
               $addToSet: { prices: item }
             }, { upsert: true, w: 1 }, function (error, result) {
               if (!error) {
-                modified += result.result.nModified || 0
-                inserted += result.result.upserted ? result.result.upserted.length : 0
+                var localModified = result.result.nModified || 0
+                modified += localModified
+                var localInserted = result.result.upserted ? result.result.upserted.length : 0
+                inserted += localInserted
+                if (localModified + localInserted > 0) {
+                  internals.notify(item)
+                }
               }
               return cb()
             })
@@ -138,7 +150,7 @@ internals.addUpdate({ status: 'initialized' })
 
 var job = new CronJob('30 */9 8-22 * * *', function () {
   internals.updateRepository(function (error, result) {
-    console.log(error || result)
+    console.log(error || result)
   })
 }, null, true, 'Europe/Berlin')
 
@@ -199,7 +211,7 @@ module.exports.register = function (plugin, options, next) {
             return reply(Boom.badImplementation('Error fetching deals', error))
           }
 
-          reply(_.map(results, function(item) {
+          reply(_.map(results, function (item) {
             item.primaryImage = item.primaryImage.substr(39)
             return item
           }))
