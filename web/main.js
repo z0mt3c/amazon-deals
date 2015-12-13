@@ -76,10 +76,10 @@ var History = React.createClass({
 
     let customActions = [
       <FlatButton
-        key='close'
-        label='Close'
-        primary={true}
-        onClick={this.handleDialogClose} />
+      key='close'
+      label='Close'
+      primary={true}
+      onClick={this.handleDialogClose} />
     ]
 
     let chartOptions = {
@@ -118,18 +118,17 @@ var History = React.createClass({
       }]
     }
 
-
     var width = window.innerWidth < 400 ? window.innerWidth / 1.8 : 700
     var height = width * 345 / 700
     var title = this.state.dataItem ? this.state.dataItem.title : 'Nothing'
 
     return (<Dialog
-        title={title.length > 50 ? title.substr(0, 40) : title}
-        actions={customActions}
-        autoDetectWindowHeight={true}
-        autoScrollBodyContent={true}
-        open={this.state.dataItem != null}
-        onRequestClose={this._handleRequestClose}>
+    title={title.length > 50 ? title.substr(0, 40) + '...' : title}
+    actions={customActions}
+    autoDetectWindowHeight={true}
+    autoScrollBodyContent={true}
+    open={this.state.dataItem != null}
+    onRequestClose={this._handleRequestClose}>
         <div style={{minHeight: height}}>
           <LineChart data={chartData} options={chartOptions} width={width} height={height}/>
         </div>
@@ -159,15 +158,15 @@ var History = React.createClass({
                   <TextField hintText='Begriff / Artikelnummer eingeben' value={this.state.query} onChange={this._handleChange} fullWidth={true} onKeyPress={this._handleKeyPress}/>
               </Toolbar>
               {message}
-              <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth/420)+1}>
+              <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth / 420) + 1}>
                 {this.state.dataList.map(function (item) {
-                  var itemClicked = self.onItemClicked.bind(self, item)
-                  var price = _.last(item.prices)
+      var itemClicked = self.onItemClicked.bind(self, item)
+      var price = _.last(item.prices)
 
-                  return <GridTile key={item._id} title={item.title}
-                    onClick={itemClicked}
-                    actionIcon={<IconButton iconClassName='muidocs-icon' tooltip='icon'></IconButton>}
-                    subtitle={<span key={price.dealID}>Letzter Deal-Preis: <b>{price.dealPrice} {price.currencyCode} (<strike>{price.currentPrice} {price.currencyCode}</strike>)</b></span>}>
+      return <GridTile key={item._id} title={item.title}
+      onClick={itemClicked}
+      actionIcon={<IconButton iconClassName='muidocs-icon' tooltip='icon'></IconButton>}
+      subtitle={<span key={price.dealID}>Letzter Deal-Preis: <b>{price.dealPrice} {price.currencyCode} (<strike>{price.currentPrice} {price.currencyCode}</strike>)</b></span>}>
                        <LazyLoad>
                          <img src={item.primaryImage} width='100%' />
                        </LazyLoad>
