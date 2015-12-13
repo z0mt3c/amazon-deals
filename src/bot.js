@@ -84,14 +84,18 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
 })
 
 var notifyClient = function (deal, keyword) {
-  bot.sendMessage(keyword.client, 'Deal-Alert for \'' + keyword.keyword + '\': ' + deal.title + ' for ' + deal.dealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
+  bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.dealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
 }
 
 module.exports = {
   notify: function (deal) {
     _.each(registeredKeywords, function (keyword) {
-      if (deal && _.contains(deal.title + deal.itemID + deal.dealID, keyword.keyword)) {
-        notifyClient(deal, keyword)
+      try {
+        if (deal && _.contains((deal.title + deal.itemID + deal.dealID).toLowerCase(), keyword.keyword.toLowerCase())) {
+          notifyClient(deal, keyword)
+        }
+      } catch (e) {
+        console.log(e)
       }
     })
   }
