@@ -19,6 +19,7 @@ module.exports.register = function (server, options, next) {
   var lastUpdate
   var keepLastUpdatesCount = 100
   var amazon = new Amazon({})
+  server.expose('client', amazon)
 
   var internals = {
     notify: function notify (deal) {

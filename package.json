@@ -1,7 +1,7 @@
 {
   "name": "amazon-lightning",
   "version": "1.0.0",
-  "description": "stuff",
+  "description": "Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui",
   "main": "babel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

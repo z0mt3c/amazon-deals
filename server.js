@@ -1,5 +1,5 @@
 import Hapi from 'hapi'
-
+var pkg = require('./package.json')
 var server = new Hapi.Server()
 
 server.connection({
@@ -25,20 +25,19 @@ server.register([
       stripPrefix: '/api',
       responseValidation: true,
       tagging: {
-        mode: 'path',
-        pathLevel: 1
+        mode: 'tags'
       },
       tags: {},
       info: {
-        title: 'Amazon Deals',
-        description: 'Powered by node, hapi, joi, hapi-swaggered, hapi-swaggered-ui and swagger-ui',
-        version: '1.0'
+        title: pkg.name,
+        description: pkg.description,
+        version: pkg.version
       }
     }
   }, {
     register: require('hapi-swaggered-ui'),
     options: {
-      title: 'Amazon Deals',
+      title: pkg.name,
       authorization: false,
       path: '/docs',
       swaggerOptions: {
@@ -70,6 +69,9 @@ server.register([
     options: {}
   }, {
     register: require('./src/amazon'),
+    options: {}
+  }, {
+    register: require('./src/amazon-internal'),
     options: {}
   }, {
     register: require('./src/telegram'),
