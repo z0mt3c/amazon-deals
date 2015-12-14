@@ -67,7 +67,7 @@ module.exports.register = function (server, options, next) {
                   modified += localModified
                   var localInserted = result.result.upserted ? result.result.upserted.length : 0
                   inserted += localInserted
-
+                  console.log(result)
                   if (localModified + localInserted > 0) {
                     internals.notify(item)
                   }
