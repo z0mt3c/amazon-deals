@@ -45,6 +45,18 @@ server.register([
         validatorUrl: null
       }
     }
+  }, {
+    register: require('hapi-mongodb-profiles'),
+    options: {
+      profiles: [{
+        name: 'main',
+        url: process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon',
+        options: {}
+      }]
+    }
+  }, {
+    register: require('./src/web'),
+    options: {}
   }
 ], {
   select: 'api'
@@ -53,44 +65,18 @@ server.register([
     throw err
   }
 
-  server.route({
-    method: 'GET',
-    path: '/{param*}',
-    handler: {
-      directory: {
-        path: './public'
-      }
-    }
-  })
-
-  server.route({
-    method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    path: '/images/{p*}',
-    config: {
-      handler: {
-        proxy: {
-          host: 'images-na.ssl-images-amazon.com',
-          protocol: 'https',
-          passThrough: true
-        }
-      }
-    }
-  })
-
-  /*
-  server.route({
-    method: 'GET',
-    path: '/',
-    handler: function (request, reply) {
-      reply.redirect('/docs')
-    }
-  })
-  */
-
-  server.register({
-    register: require('./src'),
+  server.register([{
+    register: require('./src/api'),
     options: {}
   }, {
+    register: require('./src/amazon'),
+    options: {}
+  }, {
+    register: require('./src/telegram'),
+    options: {
+      token: process.env.TELEGRAM_TOKEN || 'test'
+    }
+  }], {
     routes: {
       prefix: '/api'
     }
@@ -98,6 +84,9 @@ server.register([
     if (error) {
       throw error
     }
+    server.start(function () {
+      console.log('started on http://localhost:5000')
+    })
   })
 })
 

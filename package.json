@@ -5,9 +5,9 @@
   "main": "babel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
-    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
-    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] web/main.js -o public/main.js",
+    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
+    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
+    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
     "start": "node server.js"
   },
   "author": "z0mt3c",
@@ -26,6 +26,7 @@
     "cron": "^1.1.0",
     "h2o2": "^4.0.2",
     "hapi": "^11.1.2",
+    "hapi-mongodb-profiles": "^2.0.1",
     "hapi-swaggered": "^2.4.1",
     "hapi-swaggered-ui": "^2.1.1",
     "hoek": "^3.0.4",

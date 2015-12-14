@@ -1,24 +1,29 @@
-var TelegramBot = require('node-telegram-bot-api')
-var bot = new TelegramBot(process.env.TELEGRAM_TOKEN, {polling: true})
-import { MongoClient } from 'mongodb'
+// import Joi from 'joi'
+// import config from '../config'
+// import Boom from 'boom'
+// import async from 'async'
 import _ from 'lodash'
-
-console.log('telegram bot active')
-
-bot.onText(/\/start/, function (msg) {
-  var fromId = msg.from.id
-  bot.sendMessage(fromId, 'Hi, call me amazon-deals! I will notify you about new lightning deals for specific keywords on amazon germany.\n\nYou can control me by the following commands:\n\n/list - list your current keywords\n/add <keyword> - adds new keyword\n/remove <keyword> - removes keyword\n/stop - removes all keywords')
-})
+// import { MongoClient } from 'mongodb'
+import assert from 'assert'
+// import { CronJob } from 'cron'
+import TelegramBot from 'node-telegram-bot-api'
 
 var registeredKeywords = []
 
-MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon', function (error, db) {
-  if (error) {
-    throw error
-  }
+module.exports.register = function (server, options, next) {
+  var token = options.token
+  assert(token != null, 'Telegram token missing')
 
-  var keywords = db.collection('keywords')
+  var bot = new TelegramBot(token, {polling: true})
+  var keywords = server.plugins['hapi-mongodb-profiles'].collection('keywords')
   keywords.ensureIndex({'client': 1}, function () {})
+
+  console.log('telegram bot active')
+
+  bot.onText(/\/start/, function (msg) {
+    var fromId = msg.from.id
+    bot.sendMessage(fromId, 'Hi, call me amazon-deals! I will notify you about new lightning deals for specific keywords on amazon germany.\n\nYou can control me by the following commands:\n\n/list - list your current keywords\n/add <keyword> - adds new keyword\n/remove <keyword> - removes keyword\n/stop - removes all keywords')
+  })
 
   var updateKeywords = function () {
     keywords.find({}).toArray(function (error, results) {
@@ -81,14 +86,12 @@ MongoClient.connect(process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon
       bot.sendMessage(fromId, error ? 'Sorry! Something went wrong! Someone has to fix me!' : 'Removed all keywords and will not bother you any further.')
     })
   })
-})
 
-var notifyClient = function (deal, keyword) {
-  bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.dealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
-}
+  var notifyClient = function (deal, keyword) {
+    bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.dealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
+  }
 
-module.exports = {
-  notify: function (deal) {
+  var notify = function (deal) {
     _.each(registeredKeywords, function (keyword) {
       try {
         if (deal && _.contains((deal.title + deal.itemID + deal.dealID).toLowerCase(), keyword.keyword.toLowerCase())) {
@@ -99,4 +102,17 @@ module.exports = {
       }
     })
   }
+
+  server.on('log', (event, tags) => {
+    if (tags.deal) {
+      notify(event.data)
+    }
+  })
+
+  return next()
+}
+
+exports.register.attributes = {
+  name: 'telegram',
+  version: '1.0.0'
 }
