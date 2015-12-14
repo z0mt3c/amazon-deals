@@ -63,11 +63,10 @@ module.exports.register = function (server, options, next) {
                 $addToSet: { prices: item }
               }, { upsert: true, w: 1 }, function (error, result) {
                 if (!error) {
-                  var localModified = result.result.nModified || 0
+                  var localModified = result.result.nModified || result.result.n || 0
                   modified += localModified
                   var localInserted = result.result.upserted ? result.result.upserted.length : 0
                   inserted += localInserted
-                  console.log(result)
                   if (localModified + localInserted > 0) {
                     internals.notify(item)
                   }
