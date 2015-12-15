@@ -197,13 +197,24 @@ module.exports.register = function (server, options, next) {
 
   server.route({
     method: 'GET',
-    path: '/update',
+    path: '/update/metadata',
     config: {
       tags: ['api'],
       handler: function (request, reply) {
-        internals.updateRepository(function (error, status) {
-          reply(error || status)
-        })
+        internals.loadMetadata()
+        reply('OK')
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/update/offer',
+    config: {
+      tags: ['api'],
+      handler: function (request, reply) {
+        internals.updateOffers()
+        reply('OK')
       }
     }
   })
