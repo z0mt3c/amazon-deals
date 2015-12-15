@@ -94,6 +94,8 @@ module.exports.register = function (server, options, next) {
   })
 
   var notifyClient = function (deal, keyword) {
+    server.log(['info'], 'Sending notifications for ' + deal.title)
+
     if (deal.minDealPrice != null) {
       bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
     } else {
@@ -102,9 +104,9 @@ module.exports.register = function (server, options, next) {
   }
 
   var notify = function (deal) {
+    var checkMe = [deal.title, deal.teaser, deal.dealID, deal.impressionAsin, deal.teaserAsin, deal.teaser, deal.description].join(';').toLowerCase()
     _.each(registeredKeywords, function (keyword) {
       try {
-        var checkMe = [deal.description, deal.title, deal.teaser, deal.dealID, deal.impressionAsin, deal.teaserAsin, deal.teaser].join(';').toLowerCase()
         if (deal && _.contains(checkMe, keyword.keyword.toLowerCase())) {
           notifyClient(deal, keyword)
         }
