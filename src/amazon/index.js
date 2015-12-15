@@ -110,8 +110,8 @@ module.exports.register = function (server, options, next) {
           async.eachLimit(result, 1, function (deal, next) {
             var set = _.pick(deal, ['maxBAmount', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode'])
             set.itemId = deal.impressionAsin || deal.teaserAsin
-            set.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
-            set.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
+            set.startsAt = deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
+            set.endsAt = deal.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
             offers.updateOne({ _id: deal.dealID }, { $set: set }, function (error, r) {
               if (error) {
                 offerStatus.error += 1

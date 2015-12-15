@@ -5,6 +5,7 @@
 import _ from 'lodash'
 // import { MongoClient } from 'mongodb'
 import assert from 'assert'
+import moment from 'moment'
 // import { CronJob } from 'cron'
 import TelegramBot from 'node-telegram-bot-api'
 
@@ -95,11 +96,10 @@ module.exports.register = function (server, options, next) {
 
   var notifyClient = function (deal, keyword) {
     server.log(['info'], 'Sending notifications for ' + deal.title)
-
     if (deal.minDealPrice != null) {
-      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
+      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "'\n" + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' starting at ' + moment(deal.startsAt).format() + '\n' + deal.egressUrl)
     } else {
-      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' at ' + deal.egressUrl + ' starting around ' + deal.startsAt)
+      bot.sendMessage(keyword.client, "Deal-Alert for Keyword '" + keyword.keyword + "'\n" + deal.title + ' starting at ' + moment(deal.startsAt).format() + '\nhttp://www.amazon.de/gp/product/' + deal.impressionAsin)
     }
   }
 
