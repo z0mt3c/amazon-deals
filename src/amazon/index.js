@@ -3,18 +3,17 @@ import Amazon from './amazon'
 // import Boom from 'boom'
 import async from 'async'
 import _ from 'lodash'
+import moment from 'moment'
 import { CronJob } from 'cron'
-
-var pickFieldsDeal = ['dealID', 'description', 'title', 'type']
-var pickFieldsItem = ['currentPrice', 'currencyCode', 'dealPrice', 'egressUrl', 'isFulfilledByAmazon', 'itemID', 'merchantName', 'merchantID', 'primaryImage']
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
+  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
+  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
   deals.ensureIndex({'prices': 1}, function () {})
   deals.ensureIndex({'prices.dealID': 1}, function () {})
   deals.ensureIndex({'prices.itemID': 1}, function () {})
   deals.ensureIndex({'title': 1}, function () {})
-
   var updates = []
   var lastUpdate
   var keepLastUpdatesCount = 100
@@ -36,69 +35,149 @@ module.exports.register = function (server, options, next) {
         updates = updates.slice(updates.length - keepLastUpdatesCount)
       }
     },
-    updateRepository: function updateRepository (next) {
-      amazon.fetch('dealsByType.LIGHTNING_DEAL', function (data) {
-        if (!data) {
-          return next(null, { status: 'EMPTY' })
+    loadMetadata: function () {
+      server.log(['info'], 'Loading metadata')
+      amazon.getDealMetadata(function (error, data) {
+        if (error) {
+          server.log(['error', 'getDealMetadata'], error)
         }
 
-        var results = _.reduce(data, function (memo, deal) {
-          return _.reduce(deal ? deal.items : [], function (memo, item) {
-            if (item && item.dealPrice != null) {
-              item = _.extend({ found: new Date() }, _.pick(deal, pickFieldsDeal), _.pick(item, pickFieldsItem))
-              memo.push(item)
-            }
-            return memo
-          }, memo)
+        server.log(['info'], 'Updating metadata')
+        _.each(data.dealsByCategory, function (memo, dealIds, categoryId) {
+          _.each(dealIds, function (dealId) {
+            return {dealId: dealId, categoryId: categoryId}
+          })
         }, [])
 
-        var modified = 0
-        var inserted = 0
+        var offerStatus = {
+          modified: 0,
+          upserted: 0,
+          error: 0
+        }
 
-        async.eachLimit(results, 1, function (item, cb) {
-          deals.findOne({ _id: item.itemID, 'prices.dealID': item.dealID }, {fields: {_id: 1}}, function (error, document) {
-            if (!error && document == null) {
-              deals.update({ _id: item.itemID }, {
-                $set: _.pick(item, ['primaryImage', 'egressUrl', 'description', 'title']),
-                $addToSet: { prices: item }
-              }, { upsert: true, w: 1 }, function (error, result) {
-                if (!error) {
-                  var localModified = result.result.nModified || result.result.n || 0
-                  modified += localModified
-                  var localInserted = result.result.upserted ? result.result.upserted.length : 0
-                  inserted += localInserted
-                  if (localModified + localInserted > 0) {
-                    internals.notify(item)
-                  }
-                }
-                return cb()
-              })
-            } else {
-              return cb()
-            }
-          })
+        async.forEachOfLimit(data.dealsByCategory, 1, function (dealIds, categoryId, next) {
+          async.eachLimit(dealIds, 1, function (dealId, next) {
+            offers.update({_id: dealId}, {$addToSet: {categoryIds: categoryId}}, {upsert: true}, function (err, r) {
+              if (err) {
+                offerStatus.error += 1
+              } else {
+                offerStatus.modified += r.result.nModified || 0
+                offerStatus.upserted += r.result.upserted ? r.result.upserted.length : 0
+              }
+
+              next()
+            })
+          }, next)
         }, function () {
-          var updateInfo = {
-            status: 'OK',
-            total: results.length,
-            modified: modified,
-            inserted: inserted,
-            time: new Date()
+          server.log(['info', 'update'], { msg: 'Metadata updated', status: offerStatus })
+          if ((offerStatus.modified + offerStatus.upserted) > 0) {
+            internals.updateOffers({itemId: { $exists: false }})
           }
-          internals.addUpdate(updateInfo)
-          next(null, updateInfo)
+        })
+      })
+    },
+    updateOffers: function (query) {
+      query = _.isObject(query) ? query : {minDealPrice: { $ne: null }, startsAt: { $gt: moment().subtract(10, 'minute'), $lt: moment().add(1, 'hour') }}
+      offers.find(query, { _id: 1 }).limit(5000).toArray(function (error, docs) {
+        if (error) {
+          server.log(['error', 'offersFind'], error)
+        }
+
+        var unknownOffers = _.pluck(docs, '_id')
+        server.log(['info'], 'Processing ' + unknownOffers.length + ' unknown offers')
+
+        var offset = new Date().getTime()
+        amazon.fetchChunked(amazon.getDeals.bind(amazon), unknownOffers, 100, 1, function (error, data) {
+          if (error) {
+            server.log(['error', 'fetchChunked'], error)
+          }
+
+          var result = _.reduce(data.dealDetails, function (memo, dealDetail) {
+            var deal = dealDetail
+            deal.status = data.dealStatus[dealDetail.dealID]
+            memo.push(deal)
+            return memo
+          }, [])
+
+          server.log(['info'], 'Offer/Item details loaded')
+
+          var offerStatus = {
+            modified: 0,
+            upserted: 0,
+            error: 0
+          }
+
+          async.eachLimit(result, 1, function (deal, next) {
+            var set = _.pick(deal, ['maxBAmount', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode'])
+            set.itemId = deal.impressionAsin || deal.teaserAsin
+            set.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
+            set.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
+            offers.updateOne({ _id: deal.dealID }, { $set: set }, function (error, r) {
+              if (error) {
+                offerStatus.error += 1
+              } else {
+                offerStatus.modified += r.result.nModified || 0
+                offerStatus.upserted += r.result.upserted ? r.result.upserted.length : 0
+
+                if (((r.result.nModified || 0) + (r.result.upserted ? r.result.upserted.length : 0)) > 0) {
+                  server.log(['deal'], deal)
+                }
+              }
+
+              return next()
+            })
+          }, function () {
+            server.log(['info', 'update'], { msg: 'All offers updated', status: offerStatus })
+          })
+
+          var articleStatus = {
+            modified: 0,
+            upserted: 0,
+            error: 0
+          }
+
+          async.eachLimit(result, 1, function (deal, next) {
+            var updateData = _.pick(deal, ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews'])
+            updateData.updatedAt = new Date()
+            items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
+              if (error) {
+                articleStatus.error += 1
+              } else {
+                articleStatus.modified += r.result.nModified || 0
+                articleStatus.upserted += r.result.upserted ? r.result.upserted.length : 0
+              }
+
+              return next()
+            })
+          }, function () {
+            server.log(['info', 'update'], { msg: 'All items updated', status: articleStatus })
+          })
         })
       })
     }
   }
 
-  this.job = new CronJob(options.cronExpression || '30 */9 8-22 * * *', function () {
-    internals.updateRepository(function (error, result) {
-      console.log(error || result)
-    })
-  }, null, true, 'Europe/Berlin')
+  var cronActive = (options.active !== false)
+
+  this.jobMeta = new CronJob(options.cronExpressionMeta || '30 */15 8-22 * * *', function () {
+    server.log(['info'], 'Trigger loadMetadata')
+    internals.loadMetadata()
+  }, null, cronActive, 'Europe/Berlin')
+
+  this.jobOffers = new CronJob(options.cronExpressionOffer || '15 */5 8-22 * * *', function () {
+    server.log(['info'], 'Trigger updateOffers')
+    internals.updateOffers()
+  }, null, cronActive, 'Europe/Berlin')
+
+  server.log(['info'], 'Cronjob active: ' + cronActive)
 
   internals.addUpdate({ status: 'initialized' })
+
+  server.on('log', (event, tags) => {
+    if (tags.update) {
+      internals.addUpdate(event.data)
+    }
+  })
 
   server.route({
     method: 'GET',

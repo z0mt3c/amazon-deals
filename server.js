@@ -1,7 +1,6 @@
 import Hapi from 'hapi'
 var pkg = require('./package.json')
-var server = new Hapi.Server()
-
+var server = new Hapi.Server({ debug: { request: ['info', 'error'] } })
 server.connection({
   port: process.env.PORT || 5000,
   labels: ['api'],
@@ -16,6 +15,16 @@ server.connection({
 })
 
 server.register([
+  {
+    register: require('good'),
+    options: {
+      opsInterval: 1000,
+      reporters: [{
+        reporter: require('good-console'),
+        events: { log: 'info' }
+      }]
+    }
+  },
   require('inert'),
   require('h2o2'),
   require('vision'), {
@@ -69,14 +78,17 @@ server.register([
     options: {}
   }, {
     register: require('./src/amazon'),
-    options: {}
+    options: {
+      active: true
+    }
   }, {
     register: require('./src/amazon-internal'),
     options: {}
   }, {
     register: require('./src/telegram'),
     options: {
-      token: process.env.TELEGRAM_TOKEN || 'test'
+      active: process.env.TELEGRAM_TOKEN != null,
+      token: process.env.TELEGRAM_TOKEN
     }
   }], {
     routes: {
@@ -87,7 +99,7 @@ server.register([
       throw error
     }
     server.start(function () {
-      console.log('started on http://localhost:5000')
+      server.log(['info'], 'Listening at http://localhost:5000')
     })
   })
 })

@@ -11,14 +11,18 @@ import TelegramBot from 'node-telegram-bot-api'
 var registeredKeywords = []
 
 module.exports.register = function (server, options, next) {
+  server.log(['info'], 'Telegram bot active: ' + (options.active !== false))
+
+  if (options.active === false) {
+    return next()
+  }
+
   var token = options.token
   assert(token != null, 'Telegram token missing')
 
   var bot = new TelegramBot(token, {polling: true})
   var keywords = server.plugins['hapi-mongodb-profiles'].collection('keywords')
   keywords.ensureIndex({'client': 1}, function () {})
-
-  console.log('telegram bot active')
 
   bot.onText(/\/start/, function (msg) {
     var fromId = msg.from.id
@@ -28,7 +32,7 @@ module.exports.register = function (server, options, next) {
   var updateKeywords = function () {
     keywords.find({}).toArray(function (error, results) {
       if (error) {
-        console.log(error)
+        server.log(['info'], error)
       }
       registeredKeywords = results
     })
@@ -47,9 +51,11 @@ module.exports.register = function (server, options, next) {
         if (error) {
           bot.sendMessage(fromId, 'Sorry! Something went wrong! Someone has to fix me!')
         } else if (results && results.length > 0) {
-          bot.sendMessage(fromId, 'Your keywords:\n' + _.map(results, function (item) {
+          var list = _.map(results, function (item) {
             return '- ' + item.keyword
-          }).join('\n'))
+          })
+
+          bot.sendMessage(fromId, 'Your keywords:\n' + list.join('\n'))
         } else {
           bot.sendMessage(fromId, 'No keywords registered')
         }
@@ -88,17 +94,22 @@ module.exports.register = function (server, options, next) {
   })
 
   var notifyClient = function (deal, keyword) {
-    bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.dealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
+    if (deal.minDealPrice != null) {
+      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' at ' + deal.egressUrl)
+    } else {
+      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "': " + deal.title + ' at ' + deal.egressUrl + ' starting around ' + deal.startsAt)
+    }
   }
 
   var notify = function (deal) {
     _.each(registeredKeywords, function (keyword) {
       try {
-        if (deal && _.contains((deal.title + deal.itemID + deal.dealID).toLowerCase(), keyword.keyword.toLowerCase())) {
+        var checkMe = [deal.description, deal.title, deal.teaser, deal.dealID, deal.impressionAsin, deal.teaserAsin, deal.teaser].join(';').toLowerCase()
+        if (deal && _.contains(checkMe, keyword.keyword.toLowerCase())) {
           notifyClient(deal, keyword)
         }
       } catch (e) {
-        console.log(e)
+        server.log(['info', 'error'], e)
       }
     })
   }
