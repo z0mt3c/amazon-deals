@@ -1,14 +1,17 @@
 import Joi from 'joi'
 import Boom from 'boom'
 import _ from 'lodash'
+import moment from 'moment'
 // import config from '../config'
-// import async from 'async'
+import async from 'async'
 // import { MongoClient } from 'mongodb'
 // import assert from 'assert'
 // import { CronJob } from 'cron'
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
+  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
+  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
 
   server.route({
     method: 'GET',
@@ -39,6 +42,38 @@ module.exports.register = function (server, options, next) {
             item.primaryImage = item.primaryImage.substr(39)
             return item
           }))
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/deals/today',
+    config: {
+      tags: ['api'],
+      handler: function (request, reply) {
+        offers.find({
+          startsAt: {
+            $gte: moment().startOf('day').toDate(),
+            $lt: moment().add(1, 'day').startOf('day').toDate()
+          }
+        }).sort({ startsAt: 1 }).toArray(function (error, docs) {
+          if (error) {
+            return reply(Boom.badImplementation('Error fetching deals', error))
+          }
+
+          async.mapLimit(docs, 5, function (offer, next) {
+            items.findOne({ _id: offer.itemId }, function (error, item) {
+              next(error, _.extend({}, item, { offer: offer }))
+            })
+          }, function (error, mapped) {
+            if (error) {
+              return reply(Boom.badImplementation('Error fetching deals', error))
+            }
+
+            return reply(mapped)
+          })
         })
       }
     }

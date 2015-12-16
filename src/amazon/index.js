@@ -79,7 +79,7 @@ module.exports.register = function (server, options, next) {
       })
     },
     updateOffers: function (query) {
-      query = _.isObject(query) ? query : {minDealPrice: { $ne: null }, startsAt: { $gt: moment().subtract(10, 'minute'), $lt: moment().add(1, 'hour') }}
+      query = _.isObject(query) ? query : {minDealPrice: null, startsAt: { $lte: moment().add(10, 'minute').toDate(), $gte: moment().subtract(8, 'hour').toDate() }}
       offers.find(query, { _id: 1 }).limit(5000).toArray(function (error, docs) {
         if (error) {
           server.log(['error', 'offersFind'], error)
@@ -139,7 +139,7 @@ module.exports.register = function (server, options, next) {
           }
 
           async.eachLimit(result, 1, function (deal, next) {
-            var updateData = _.pick(deal, ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews'])
+            var updateData = _.pick(deal, ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon'])
             updateData.updatedAt = new Date()
             items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
               if (error) {
