@@ -58,7 +58,7 @@ server.register([
     options: {
       profiles: [{
         name: 'main',
-        url: process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon',
+        url: process.env.MONGO_URL || process.env.MONGODB_URL || 'mongodb://localhost:27017/amazon',
         options: {}
       }]
     }
