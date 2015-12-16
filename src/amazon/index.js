@@ -79,7 +79,7 @@ module.exports.register = function (server, options, next) {
       })
     },
     updateOffers: function (query) {
-      query = _.isObject(query) ? query : {minDealPrice: null, startsAt: { $lte: moment().add(10, 'minute').toDate(), $gte: moment().subtract(24, 'hour').toDate() }}
+      query = _.isObject(query) ? query : {minDealPrice: null, startsAt: { $lte: moment().add(10, 'minute').toDate(), $gte: moment().subtract(4, 'hour').toDate() }}
       offers.find(query, { _id: 1 }).limit(5000).toArray(function (error, docs) {
         if (error) {
           server.log(['error', 'offersFind'], error)
