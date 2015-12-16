@@ -43,7 +43,9 @@ module.exports.register = function (server, options, next) {
         }
 
         server.log(['info'], 'Updating metadata')
-        _.each(data.dealsByCategory, function (memo, dealIds, categoryId) {
+        var dealsByCategory = data ? data.dealsByCategory : {}
+
+        _.each(dealsByCategory, function (memo, dealIds, categoryId) {
           _.each(dealIds, function (dealId) {
             return {dealId: dealId, categoryId: categoryId}
           })
@@ -55,7 +57,7 @@ module.exports.register = function (server, options, next) {
           error: 0
         }
 
-        async.forEachOfLimit(data.dealsByCategory, 1, function (dealIds, categoryId, next) {
+        async.forEachOfLimit(dealsByCategory, 1, function (dealIds, categoryId, next) {
           async.eachLimit(dealIds, 1, function (dealId, next) {
             offers.update({_id: dealId}, {$addToSet: {categoryIds: categoryId}}, {upsert: true}, function (err, r) {
               if (err) {
