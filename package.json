@@ -5,9 +5,9 @@
   "main": "babel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
-    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
-    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
+    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/js/main.js",
+    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/js/main.js",
+    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/js/main.js",
     "start": "node server.js"
   },
   "author": "z0mt3c",
