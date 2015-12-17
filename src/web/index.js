@@ -1,12 +1,23 @@
-var path = require('path')
+var Path = require('path')
+var _ = require('lodash')
 
 module.exports.register = function (server, options, next) {
+  _.each(['/', '/today', '/deals'], function (path) {
+    server.route({
+      method: 'GET',
+      path: path,
+      handler: {
+        file: Path.join(__dirname, './public/index.html')
+      }
+    })
+  })
+
   server.route({
     method: 'GET',
     path: '/{param*}',
     handler: {
       directory: {
-        path: path.join(__dirname, './public')
+        path: Path.join(__dirname, './public')
       }
     }
   })

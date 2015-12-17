@@ -5,9 +5,9 @@
   "main": "babel.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
-    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
-    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/main.js -o src/web/public/main.js",
+    "build": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
+    "postinstall": "browserify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
+    "watch": "watchify -d -t [ babelify --presets [ react babel-preset-es2015 ] ] src/web/src/main.js -o src/web/public/main.js",
     "start": "node server.js"
   },
   "author": "z0mt3c",
@@ -31,6 +31,7 @@
     "hapi-mongodb-profiles": "^2.0.1",
     "hapi-swaggered": "^2.4.1",
     "hapi-swaggered-ui": "^2.1.1",
+    "history": "^1.13.1",
     "hoek": "^3.0.4",
     "inert": "^3.2.0",
     "joi": "^7.0.1",
@@ -43,6 +44,7 @@
     "react-chartjs": "^0.6.0",
     "react-dom": "^0.14.3",
     "react-lazy-load": "2.0.0",
+    "react-router": "^1.0.2",
     "react-tap-event-plugin": "^0.2.1",
     "superagent": "^1.5.0",
     "vision": "^4.0.1",

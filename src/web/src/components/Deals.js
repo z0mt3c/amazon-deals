@@ -1,4 +1,4 @@
-// main.js
+
 let React = require('react')
 let ReactDOM = require('react-dom')
 let AppBar = require('material-ui/lib/app-bar')
@@ -177,6 +177,7 @@ var History = React.createClass({
   }
 })
 
+/*
 ReactDOM.render(
   <div>
     <AppBar title='Amazon Blitzangebote' />
@@ -184,3 +185,6 @@ ReactDOM.render(
   </div>,
   document.getElementById('example')
 )
+*/
+
+module.exports = History
