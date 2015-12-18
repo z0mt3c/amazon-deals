@@ -15,7 +15,7 @@ module.exports.register = function (server, options, next) {
 
   server.route({
     method: 'GET',
-    path: '/deals',
+    path: '/deals/old',
     config: {
       tags: ['api'],
       validate: {
@@ -39,7 +39,39 @@ module.exports.register = function (server, options, next) {
           }
 
           reply(_.map(results, function (item) {
-            item.primaryImage = item.primaryImage.substr(39)
+            item.primaryImage = item.primaryImage ? item.primaryImage.substr(39) : null
+            return item
+          }))
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/deals',
+    config: {
+      tags: ['api'],
+      validate: {
+        query: Joi.object({
+          q: Joi.string().required()
+        })
+      },
+      handler: function (request, reply) {
+        var query = {}
+        var conditions = []
+        var q = request.query.q
+        conditions.push({_id: q})
+        conditions.push({'title': { $regex: q, $options: 'i' }})
+        query = { $or: conditions }
+
+        items.find(query).limit(100).toArray(function (error, results) {
+          if (error) {
+            return reply(Boom.badImplementation('Error fetching deals', error))
+          }
+
+          reply(_.map(results, function (item) {
+            item.primaryImage = item.primaryImage ? item.primaryImage.substr(39) : null
             return item
           }))
         })

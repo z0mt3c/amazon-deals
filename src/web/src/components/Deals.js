@@ -166,7 +166,8 @@ var History = React.createClass({
       return <GridTile key={item._id} title={item.title}
       onClick={itemClicked}
       actionIcon={<IconButton iconClassName='muidocs-icon' tooltip='icon'></IconButton>}
-      subtitle={<span key={price.dealID}>Letzter Deal-Preis: <b>{price.dealPrice} {price.currencyCode} (<strike>{price.currentPrice} {price.currencyCode}</strike>)</b></span>}>
+      /* subtitle={<span key={price._id}>Letzter Deal-Preis: <b>{price.dealPrice} {price.currencyCode} (<strike>{price.currentPrice} {price.currencyCode}</strike>)</b></span>} */
+      >
                        <LazyLoad>
                          <img src={item.primaryImage} width='100%' />
                        </LazyLoad>
