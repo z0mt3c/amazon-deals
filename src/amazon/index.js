@@ -5,6 +5,7 @@ import async from 'async'
 import _ from 'lodash'
 import moment from 'moment'
 import { CronJob } from 'cron'
+import URL from 'url'
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
@@ -21,6 +22,9 @@ module.exports.register = function (server, options, next) {
   server.expose('client', amazon)
 
   var internals = {
+    stripHost: function(url) {
+      return url != null ? URL.parse(url).path : null
+    },
     notify: function notify (deal) {
       server.log([ 'deal' ], deal)
     },
@@ -110,6 +114,8 @@ module.exports.register = function (server, options, next) {
           }
 
           async.eachLimit(result, 1, function (deal, next) {
+            deal.teaserImage = internals.stripHost(deal.teaserImage)
+            deal.primaryImage = internals.stripHost(deal.primaryImage)
             var set = _.pick(deal, ['maxBAmount', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode'])
             set.itemId = deal.impressionAsin || deal.teaserAsin
             set.startsAt = deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()

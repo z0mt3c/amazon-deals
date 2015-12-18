@@ -71,7 +71,7 @@ module.exports.register = function (server, options, next) {
           }
 
           reply(_.map(results, function (item) {
-            item.primaryImage = item.primaryImage ? item.primaryImage.substr(39) : null
+            item.primaryImage = _.contains(item.primaryImage, 'http') ? item.primaryImage.substr(39) : item.primaryImage
             return item
           }))
         })

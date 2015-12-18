@@ -1,6 +1,9 @@
 import React from 'react'
 import superagent from 'superagent'
 import _ from 'lodash'
+import List from 'material-ui/lib/lists/list'
+// import ListDivider from 'material-ui/lib/lists/list-divider'
+import ListItem from 'material-ui/lib/lists/list-item'
 
 module.exports = React.createClass({
   getInitialState() {
@@ -22,9 +25,11 @@ module.exports = React.createClass({
     return (
     <div>
         <h2>Heute</h2>
-        <div>{_.map(this.state.list, function (item) {
-          return <div key={item._id}>{item.title}</div>
-    })}</div>
+        <List>
+          {_.map(this.state.list, function (item) {
+            return <ListItem key={item._id} primaryText={item.title} />
+          })}
+        </List>
       </div>
     )
   }
