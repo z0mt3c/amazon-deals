@@ -96,9 +96,11 @@ module.exports.register = function (server, options, next) {
         amazon.fetchChunked(amazon.getDeals.bind(amazon), unknownOffers, 100, 1, function (error, data) {
           if (error) {
             server.log(['error', 'fetchChunked'], error)
+          } else if (data.dealDetails == null) {
+            server.log(['error', 'empty'], 'Empty deal data')
           }
 
-          var result = _.reduce(data.dealDetails, function (memo, dealDetail) {
+          var result = _.reduce(data.dealDetails || [], function (memo, dealDetail) {
             var deal = dealDetail
             deal.status = data.dealStatus[dealDetail.dealID]
             memo.push(deal)
