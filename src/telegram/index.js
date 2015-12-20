@@ -97,9 +97,9 @@ module.exports.register = function (server, options, next) {
   var notifyClient = function (deal, keyword) {
     server.log(['info'], 'Sending notifications for ' + deal.title)
     if (deal.minDealPrice != null) {
-      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "'\n" + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' starting at ' + moment(deal.startsAt).format() + '\n' + deal.egressUrl)
+      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "'\n" + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' starting at ' + moment(deal.startsAt).tz('Europe/Berlin').format('DD.MM.YYYY HH:mm') + '\n' + deal.egressUrl)
     } else {
-      bot.sendMessage(keyword.client, "Deal-Alert for Keyword '" + keyword.keyword + "'\n" + deal.title + ' starting at ' + moment(deal.startsAt).format() + '\nhttp://www.amazon.de/gp/product/' + deal.impressionAsin)
+      bot.sendMessage(keyword.client, "Deal-Alert for Keyword '" + keyword.keyword + "'\n" + deal.title + ' starting at ' + moment(deal.startsAt).tz('Europe/Berlin').format('DD.MM.YYYY HH:mm') + '\nhttp://www.amazon.de/gp/product/' + deal.impressionAsin)
     }
   }
 
