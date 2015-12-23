@@ -169,7 +169,7 @@ var History = React.createClass({
       /* subtitle={<span key={price._id}>Letzter Deal-Preis: <b>{price.dealPrice} {price.currencyCode} (<strike>{price.currentPrice} {price.currencyCode}</strike>)</b></span>} */
       >
                        <LazyLoad>
-                         <img src={item.primaryImage} width='100%' />
+                         <img src={item.teaserImage || item.primaryImage} width='100%' />
                        </LazyLoad>
                   </GridTile> })}
               </GridList>

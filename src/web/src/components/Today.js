@@ -4,6 +4,9 @@ import _ from 'lodash'
 import List from 'material-ui/lib/lists/list'
 // import ListDivider from 'material-ui/lib/lists/list-divider'
 import ListItem from 'material-ui/lib/lists/list-item'
+import Avatar from 'material-ui/lib/avatar'
+import LazyLoad from 'react-lazy-load'
+import moment from 'moment'
 
 module.exports = React.createClass({
   getInitialState() {
@@ -27,7 +30,7 @@ module.exports = React.createClass({
         <h2>Heute</h2>
         <List>
           {_.map(this.state.list, function (item) {
-            return <ListItem key={item._id} primaryText={item.title} />
+            return <ListItem key={item._id} primaryText={item.title} secondaryText={<span>Ab {moment(item.offer.startsAt).format('HH:mm')} Uhr</span>} /*leftAvatar={<Avatar src={item.primaryImage||item.teaserImage} />}*//>
           })}
         </List>
       </div>

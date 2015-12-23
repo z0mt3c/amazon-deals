@@ -12,6 +12,14 @@ module.exports.register = function (server, options, next) {
 
   server.route({
     method: 'GET',
+    path: '/item/{param?}',
+    handler: {
+      file: Path.join(__dirname, './public/index.html')
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/{param*}',
     handler: {
       directory: {

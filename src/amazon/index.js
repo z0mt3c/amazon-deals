@@ -22,7 +22,7 @@ module.exports.register = function (server, options, next) {
   server.expose('client', amazon)
 
   var internals = {
-    stripHost: function(url) {
+    stripHost: function (url) {
       return url != null ? URL.parse(url).path : null
     },
     notify: function notify (deal) {
