@@ -1,10 +1,10 @@
 import React, { PropTypes, Component } from 'react'
 
-export default class Deals extends Component {
+export default class Posts extends Component {
   render() {
     return (
       <ul>
-        {this.props.deals.map((post, i) =>
+        {this.props.posts.map((post, i) =>
           <li key={i}>{post.title}</li>
         )}
       </ul>
@@ -12,8 +12,8 @@ export default class Deals extends Component {
   }
 }
 
-Deals.propTypes = {
-  deals: PropTypes.arrayOf(PropTypes.shape({
+Posts.propTypes = {
+  posts: PropTypes.arrayOf(PropTypes.shape({
     title: PropTypes.string.isRequired
   }).isRequired).isRequired
 }

@@ -9,12 +9,16 @@ import URL from 'url'
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
-  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
-  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
   deals.ensureIndex({'prices': 1}, function () {})
   deals.ensureIndex({'prices.dealID': 1}, function () {})
   deals.ensureIndex({'prices.itemID': 1}, function () {})
   deals.ensureIndex({'title': 1}, function () {})
+
+  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
+
+  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
+  offers.ensureIndex({'startsAt': 1}, function () {})
+
   var updates = []
   var lastUpdate
   var keepLastUpdatesCount = 100

@@ -1,5 +1,4 @@
 var Path = require('path')
-var _ = require('lodash')
 
 module.exports.register = function (server, options, next) {
   server.route({

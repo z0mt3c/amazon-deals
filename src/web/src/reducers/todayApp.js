@@ -1,38 +1,42 @@
 import { combineReducers } from 'redux'
 import {
-  SELECT_REDDIT, INVALIDATE_REDDIT,
-  REQUEST_POSTS, RECEIVE_POSTS
-} from './actions'
+  OPTIONS_TODAY,
+  INVALIDATE_TODAY,
+  REQUEST_TODAY,
+  RECEIVE_TODAY
+} from '../constants'
 
-function selectedReddit(state = 'reactjs', action) {
+function options (options = {}, action) {
   switch (action.type) {
-    case SELECT_REDDIT:
+    case OPTIONS_TODAY:
       return action.reddit
     default:
-      return state
+      return options
   }
 }
 
-function posts(state = {
+function todayDeals (state = {
   isFetching: false,
   didInvalidate: false,
-  items: []
+  items: [],
+  page: {}
 }, action) {
   switch (action.type) {
-    case INVALIDATE_REDDIT:
+    case INVALIDATE_TODAY:
       return Object.assign({}, state, {
         didInvalidate: true
       })
-    case REQUEST_POSTS:
+    case REQUEST_TODAY:
       return Object.assign({}, state, {
         isFetching: true,
         didInvalidate: false
       })
-    case RECEIVE_POSTS:
+    case RECEIVE_TODAY:
       return Object.assign({}, state, {
         isFetching: false,
         didInvalidate: false,
-        items: action.posts,
+        items: action.deals,
+        page: action.page,
         lastUpdated: action.receivedAt
       })
     default:
@@ -40,13 +44,13 @@ function posts(state = {
   }
 }
 
-function postsByReddit(state = { }, action) {
+function dealsByOptions (state = { }, action) {
   switch (action.type) {
-    case INVALIDATE_REDDIT:
-    case RECEIVE_POSTS:
-    case REQUEST_POSTS:
+    case INVALIDATE_TODAY:
+    case REQUEST_TODAY:
+    case RECEIVE_TODAY:
       return Object.assign({}, state, {
-        [action.reddit]: posts(state[action.reddit], action)
+        result: todayDeals(undefined, action)
       })
     default:
       return state
@@ -54,8 +58,8 @@ function postsByReddit(state = { }, action) {
 }
 
 const rootReducer = combineReducers({
-  postsByReddit,
-  selectedReddit
+  dealsByOptions,
+  options
 })
 
 export default rootReducer

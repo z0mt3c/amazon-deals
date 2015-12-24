@@ -42,6 +42,7 @@
     "moment-timezone": "^0.4.1",
     "mongodb": "^2.1.0",
     "node-telegram-bot-api": "^0.17.0",
+    "qs": "^6.0.1",
     "react": "^0.14.3",
     "react-chartjs": "^0.6.0",
     "react-dom": "^0.14.3",
@@ -50,11 +51,14 @@
     "react-router": "^1.0.2",
     "react-tap-event-plugin": "^0.2.1",
     "redux": "^3.0.5",
+    "redux-logger": "^2.3.1",
     "redux-simple-router": "^1.0.1",
+    "redux-thunk": "^1.0.2",
     "superagent": "^1.6.1",
     "vision": "^4.0.1",
     "watchify": "^3.6.1",
-    "wreck": "^7.0.0"
+    "wreck": "^7.0.0",
+    "x-result-count": "^1.0.0"
   },
   "standard": {
     "parser": "babel-eslint"

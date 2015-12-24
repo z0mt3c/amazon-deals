@@ -4,6 +4,7 @@ import _ from 'lodash'
 import moment from 'moment'
 // import config from '../config'
 import async from 'async'
+import xrc from 'x-result-count'
 // import { MongoClient } from 'mongodb'
 // import assert from 'assert'
 // import { CronJob } from 'cron'
@@ -84,27 +85,51 @@ module.exports.register = function (server, options, next) {
     path: '/deals/today',
     config: {
       tags: ['api'],
+      validate: {
+        query: Joi.object({
+          limit: Joi.number().integer().default(100).optional(),
+          skip: Joi.number().integer().default(0).optional(),
+          since: Joi.date().optional(),
+          until: Joi.date().optional()
+        })
+      },
       handler: function (request, reply) {
-        offers.find({
+        var page = { skip: request.query.skip }
+        var query = offers.find({
           startsAt: {
-            $gte: moment().startOf('day').toDate(),
-            $lt: moment().add(1, 'day').startOf('day').toDate()
+            $gte: request.query.since || moment().startOf('day').toDate(),
+            $lt: request.query.until || moment().add(1, 'day').startOf('day').toDate()
           }
-        }).sort({ startsAt: 1 }).toArray(function (error, docs) {
+        })
+        .sort({ startsAt: 1 })
+
+        query.count(function (error, total) {
           if (error) {
             return reply(Boom.badImplementation('Error fetching deals', error))
           }
 
-          async.mapLimit(docs, 5, function (offer, next) {
-            items.findOne({ _id: offer.itemId }, function (error, item) {
-              next(error, _.extend({}, item, { offer: offer }))
-            })
-          }, function (error, mapped) {
+          page.total = total
+
+          query
+          .skip(request.query.skip)
+          .limit(request.query.limit)
+          .toArray(function (error, docs) {
             if (error) {
               return reply(Boom.badImplementation('Error fetching deals', error))
             }
 
-            return reply(mapped)
+            async.mapLimit(docs, 5, function (offer, next) {
+              items.findOne({ _id: offer.itemId }, function (error, item) {
+                next(error, _.extend({}, item, { offer: offer }))
+              })
+            }, function (error, mapped) {
+              if (error) {
+                return reply(Boom.badImplementation('Error fetching deals', error))
+              }
+
+              page.count = docs.length
+              return reply(mapped).header('x-result-count', xrc.generate(page))
+            })
           })
         })
       }
