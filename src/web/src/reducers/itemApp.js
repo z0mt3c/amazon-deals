@@ -1,12 +1,22 @@
 import { combineReducers } from 'redux'
 import {
   REQUEST_ITEM,
+  SELECT_ITEM,
   RECEIVE_ITEM
 } from '../constants'
 
+function asin (asin = 'none', action) {
+  switch (action.type) {
+    case SELECT_ITEM:
+      return action.asin
+    default:
+      return asin
+  }
+}
+
 function item (state = {
   isFetching: false,
-  items: []
+  item: {}
 }, action) {
   switch (action.type) {
     case REQUEST_ITEM:
@@ -24,12 +34,13 @@ function item (state = {
   }
 }
 
-function itemById (state = { }, action) {
+function itemByAsin (state = { }, action) {
+  console.log('state', state)
   switch (action.type) {
     case RECEIVE_ITEM:
     case REQUEST_ITEM:
       return Object.assign({}, state, {
-        [action.id]: item(state[action.id], action)
+        [action.asin]: item(state[action.asin], action)
       })
     default:
       return state
@@ -37,7 +48,8 @@ function itemById (state = { }, action) {
 }
 
 const rootReducer = combineReducers({
-  itemById
+  asin,
+  itemByAsin
 })
 
 export default rootReducer

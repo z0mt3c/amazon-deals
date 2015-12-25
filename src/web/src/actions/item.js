@@ -1,37 +1,45 @@
 import fetch from 'isomorphic-fetch'
 
 import {
+  SELECT_ITEM,
   REQUEST_ITEM,
   RECEIVE_ITEM
 } from '../constants'
 
-function requestItem (id) {
+export function selectItem (asin) {
   return {
-    type: REQUEST_ITEM,
-    id
+    type: SELECT_ITEM,
+    asin
   }
 }
 
-function receiveItem (id, json) {
+function requestItem (asin) {
+  return {
+    type: REQUEST_ITEM,
+    asin
+  }
+}
+
+function receiveItem (asin, json) {
   return {
     type: RECEIVE_ITEM,
-    id,
+    asin,
     item: json,
     receivedAt: Date.now()
   }
 }
 
-function fetchItem (id) {
+function fetchItem (asin) {
   return dispatch => {
-    dispatch(requestItem(id))
-    return fetch(`/api/item/${id}`)
+    dispatch(requestItem(asin))
+    return fetch(`/api/item/${asin}`)
       .then(response => response.json())
-      .then(json => dispatch(receiveItem(id, json)))
+      .then(json => dispatch(receiveItem(asin, json)))
   }
 }
 
-function shouldFetchItem (state, id) {
-  const item = state.itemApp.itemById[id]
+function shouldFetchItem (state, asin) {
+  const item = state.itemApp.itemByAsin[asin]
   if (!item) {
     return true
   } else if (item.isFetching) {
@@ -41,10 +49,10 @@ function shouldFetchItem (state, id) {
   }
 }
 
-export function fetchItemIfNeeded (id) {
+export function fetchItemIfNeeded (asin) {
   return (dispatch, getState) => {
-    if (shouldFetchItem(getState(), id)) {
-      return dispatch(fetchItem(id))
+    if (shouldFetchItem(getState(), asin)) {
+      return dispatch(fetchItem(asin))
     }
   }
 }

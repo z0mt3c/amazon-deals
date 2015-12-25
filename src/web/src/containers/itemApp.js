@@ -1,24 +1,51 @@
-import React from 'react'
+import React, { Component, PropTypes } from 'react'
+import { connect } from 'react-redux'
+import { fetchItemIfNeeded, selectItem } from '../actions/item'
+import Item from '../components/Item'
 
-module.exports = React.createClass({
-  componentDidMount() {
-    this.setState({})
-  },
+class ItemApp extends Component {
+  componentDidMount () {
+    const { dispatch, params } = this.props
+    dispatch(selectItem(params.asin))
+    dispatch(fetchItemIfNeeded(params.asin))
+  }
 
-  render() {
+  render () {
+    const { item } = this.props
     return (
-    <div>
-        <h2>Item {this.props.params.asin}</h2>
+      <div>
+        <Item item={item}/>
       </div>
     )
   }
-})
+}
 
-/*
-componentDidMount() {
-  this.setState({
-    // route components are rendered with useful information, like URL params
-    user: findUserById(this.props.params.userId)
-  })
-},
-*/
+ItemApp.propTypes = {
+  asin: PropTypes.string.isRequired,
+  item: PropTypes.object.isRequired,
+  isFetching: PropTypes.bool.isRequired,
+  lastUpdated: PropTypes.number,
+  dispatch: PropTypes.func.isRequired,
+  params: PropTypes.object.isRequired
+}
+
+function mapStateToProps (state) {
+  const { asin, itemByAsin } = state.itemApp
+  const {
+    isFetching,
+    lastUpdated,
+    item
+  } = itemByAsin[asin] || {
+    isFetching: true,
+    item: {}
+  }
+
+  return {
+    asin,
+    item,
+    isFetching,
+    lastUpdated
+  }
+}
+
+export default connect(mapStateToProps)(ItemApp)

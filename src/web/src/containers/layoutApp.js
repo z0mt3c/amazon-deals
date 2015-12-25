@@ -1,25 +1,19 @@
-import React from 'react'
-import { History } from 'react-router'
 import AppBar from 'material-ui/lib/app-bar'
 import LeftNav from 'material-ui/lib/left-nav'
-// import Menu from 'material-ui/lib/menus/menu'
 import MenuItem from 'material-ui/lib/menus/menu-item'
-// import { pushPath } from 'redux-simple-router'
+import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
+import { pushPath } from 'redux-simple-router'
 
-var LayoutApp = module.exports = React.createClass({
-  mixins: [History],
-
+var LayoutApp = React.createClass({
   getInitialState () {
     return {
       open: false
     }
   },
 
-  browse: function (page) {
-    this.history.replaceState(null, page)
-    // where does this dispatch come in place? may connect to redux?
-    // this.props.dispatch(pushPath(page))
+  browse (page) {
+    this.props.dispatch(pushPath(page))
     this.setState({ open: false })
   },
 
@@ -33,6 +27,11 @@ var LayoutApp = module.exports = React.createClass({
       </LeftNav>
       <div>{this.props.children}</div>
     </div>)
+  },
+
+  propTypes: {
+    dispatch: PropTypes.func.isRequired,
+    children: PropTypes.object
   }
 })
 

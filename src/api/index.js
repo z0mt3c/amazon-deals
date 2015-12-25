@@ -135,6 +135,36 @@ module.exports.register = function (server, options, next) {
       }
     }
   })
+  server.route({
+    method: 'GET',
+    path: '/item/{asin}',
+    config: {
+      tags: ['api'],
+      validate: {
+        params: Joi.object({
+          asin: Joi.string().required()
+        })
+      },
+      handler: function (request, reply) {
+        const asin = request.params.asin
+        items.findOne({ _id: asin }, function (error, item) {
+          if (error) {
+            return reply(Boom.badImplementation('Error fetching item', error))
+          } else if (!item) {
+            return reply(Boom.notFound('Item not found'))
+          }
+
+          offers.find({ itemId: asin }).sort({ startsAt: 1 }).limit(500).toArray((error, offerList) => {
+            if (error) {
+              return reply(Boom.badImplementation('Error fetching offers', error))
+            }
+
+            reply(Object.assign({}, item, { offers: offerList || [] }))
+          })
+        })
+      }
+    }
+  })
 
   next()
 }

@@ -18,6 +18,7 @@ module.exports.register = function (server, options, next) {
 
   var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
   offers.ensureIndex({'startsAt': 1}, function () {})
+  offers.ensureIndex({'itemId': 1}, function () {})
 
   var updates = []
   var lastUpdate
