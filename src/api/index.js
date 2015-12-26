@@ -87,7 +87,7 @@ module.exports.register = function (server, options, next) {
       tags: ['api'],
       validate: {
         query: Joi.object({
-          limit: Joi.number().integer().default(100).optional(),
+          limit: Joi.number().integer().default(5000).optional(),
           skip: Joi.number().integer().default(0).optional(),
           since: Joi.date().optional(),
           until: Joi.date().optional()
@@ -95,10 +95,12 @@ module.exports.register = function (server, options, next) {
       },
       handler: function (request, reply) {
         var page = { skip: request.query.skip }
+        var since = request.query.since || moment().startOf('day').toDate()
+        var until = request.query.until || moment(since).add(1, 'day').startOf('day').toDate()
         var query = offers.find({
           startsAt: {
-            $gte: request.query.since || moment().startOf('day').toDate(),
-            $lt: request.query.until || moment().add(1, 'day').startOf('day').toDate()
+            $gte: since,
+            $lt: until
           }
         })
         .sort({ startsAt: 1 })

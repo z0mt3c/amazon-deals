@@ -13,15 +13,17 @@ const chartOptions = {
   barShowStroke: true,
   barStrokeWidth: 2,
   barValueSpacing: 5,
-  barDatasetSpacing: 1
+  barDatasetSpacing: 1,
+  responsive: true
 }
 
 export default class OfferChart extends Component {
   render () {
     const { offers } = this.props
 
+    let filtered = offers.filter(offer => offer.minDealPrice != null)
     let chartData = {
-      labels: _.map(offers, offer => moment(offer.startsAt).format('DD.MM.YYYY')),
+      labels: _.map(filtered, offer => moment(offer.startsAt).format('DD.MM.YYYY')),
       datasets: [{
         label: 'Normalpreis',
         fillColor: 'rgba(151,187,205,0.2)',
@@ -30,7 +32,7 @@ export default class OfferChart extends Component {
         pointStrokeColor: '#fff',
         pointHighlightFill: '#fff',
         pointHighlightStroke: 'rgba(151,187,205,1)',
-        data: _.map(offers, offer => offer.minCurrentPrice || '?')
+        data: _.map(filtered, offer => offer.minCurrentPrice || '?')
       }, {
         label: 'Deal-Preis',
         fillColor: 'rgba(220,220,220,0.2)',
@@ -39,14 +41,11 @@ export default class OfferChart extends Component {
         pointStrokeColor: '#fff',
         pointHighlightFill: '#fff',
         pointHighlightStroke: 'rgba(220,220,220,1)',
-        data: _.map(offers, offer => offer.minDealPrice || '?')
+        data: _.map(filtered, offer => offer.minDealPrice || '?')
       }]
     }
 
-    var width = window.innerWidth - 20
-    var height = Math.min(width * (9 / 16), 400)
-    console.log(width, height)
-    return <div><Line data={chartData} options={chartOptions} width={width} height={height}/></div>
+    return <div><Line data={chartData} options={chartOptions}/></div>
   }
 }
 

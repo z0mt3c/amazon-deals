@@ -29,7 +29,8 @@ render((
         <IndexRoute component={TodayApp}/>
         <Route path='today' component={TodayApp}/>
         <Route path='reddit' component={RedditApp}/>
-        <Route path='deals' component={SearchApp}/>
+        <Route path='search' component={SearchApp}/>
+        <Route path='search/:query' component={SearchApp}/>
         <Route path='item/:asin' component={ItemApp}/>
         <Route path='*' component={NoMatchApp}/>
       </Route>

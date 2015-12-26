@@ -11,12 +11,38 @@ export default class Item extends Component {
       const url = `http://anonym.to/?${item.egressUrl}`
       return (
       <div>
-      <h2> {item.title} ({item._id})</h2>
-      <img src={item.primaryImage || item.teaserImage}/>
-      <OfferChart offers={item.offers}/>
-      {_.map(item.offers, offer => <div key={offer._id}>{moment(offer.startsAt).format('DD.MM.YYYY HH:mm')} -> {offer.minDealPrice}</div>)}
+      <h4>{item.title}</h4>
+      <h6>ASIN: {item._id}</h6>
+
+      <div className='row'>
+        <div className='col l5 m6'>
+          <img src={item.primaryImage || item.teaserImage} style={{width: '100%'}}/>
+        </div>
+        <div className='col l7 m6'>
+          <OfferChart offers={item.offers}/>
+
+          <table className='bordered'>
+            <thead>
+              <tr>
+                  <th data-field="date">Datum</th>
+                  <th data-field="dealPrice">Deal-Preis</th>
+                  <th data-field="currentPrice">Normal-Preis</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {_.map(item.offers, offer => <tr key={offer._id}>
+                <td>{moment(offer.startsAt).format('DD.MM.YYYY HH:mm')}</td>
+                <td>{offer.minDealPrice || '?'} {offer.currencyCode}</td>
+                <td>{offer.minCurrentPrice} {offer.currencyCode}</td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+      </div>
       <br/>
-      <a href={url} target='blank'>Zu Amazon</a>
+      <a href={url} target='blank' className='waves-effect waves-light btn' style={{float:'right'}}>Zu Amazon</a>
+      <br/><br/>
       </div>
       )
     } else {

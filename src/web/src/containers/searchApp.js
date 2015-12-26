@@ -3,6 +3,7 @@ import { pushPath } from 'redux-simple-router'
 
 import React, { PropTypes } from 'react'
 import LazyLoad from 'react-lazy-load'
+
 let Toolbar = require('material-ui/lib/toolbar/toolbar')
 let TextField = require('material-ui/lib/text-field')
 let GridList = require('material-ui/lib/grid-list/grid-list')
@@ -13,8 +14,13 @@ let superagent = require('superagent')
 
 var HistoryApp = React.createClass({
   getInitialState () {
+    let query = ''
+    if (this.props.params && this.props.params.query != null) {
+      query = this.props.params.query
+    }
+
     return {
-      query: '',
+      query: query,
       windowWidth: window.innerWidth,
       message: 'Suchbegriff eingeben (mindestens 3 Zeichen)',
       dataList: [],
@@ -27,6 +33,9 @@ var HistoryApp = React.createClass({
   },
 
   componentDidMount () {
+    if (this.state.query.length > 3) {
+      this.doSearch(this.state.query)
+    }
     window.addEventListener('resize', this.handleResize)
   },
 
@@ -43,20 +52,25 @@ var HistoryApp = React.createClass({
     var query = this.state.query
     if (event.key === 'Enter') {
       if (query.length >= 3) {
-        superagent.get('api/deals')
-          .query({ q: query })
-          .set('Accept', 'application/json')
-          .end(function (err, res) {
-            if (err) {
-              console.log(err)
-            }
-            var result = res.body || []
-            this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
-          }.bind(this))
+        this.doSearch(query)
       } else {
         this.setState({ dataList: [], message: 'Suchbegriff eingeben (mindestens 3 Zeichen)' })
       }
     }
+  },
+
+  doSearch (query) {
+    this.props.dispatch(pushPath('/search/' + encodeURIComponent(query)))
+    superagent.get('/api/deals')
+      .query({ q: query })
+      .set('Accept', 'application/json')
+      .end(function (err, res) {
+        if (err) {
+          console.log(err)
+        }
+        var result = res.body || []
+        this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
+      }.bind(this))
   },
 
   onItemClicked (item) {
@@ -95,6 +109,7 @@ var HistoryApp = React.createClass({
   },
 
   propTypes: {
+    params: PropTypes.object,
     dispatch: PropTypes.func.isRequired
   }
 })

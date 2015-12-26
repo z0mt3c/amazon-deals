@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { fetchTodayIfNeeded } from '../actions/today'
 import Deals from '../components/Deals'
 
+const options = {}
 
 class TodayApp extends Component {
   constructor (props) {
@@ -12,34 +13,33 @@ class TodayApp extends Component {
   }
 
   componentDidMount () {
-    const { dispatch, options } = this.props
+    const { dispatch } = this.props
     dispatch(fetchTodayIfNeeded(options))
   }
 
   componentWillReceiveProps (nextProps) {
     if (nextProps.options !== this.props.options) {
-      const { dispatch, options } = nextProps
+      const { dispatch } = nextProps
       dispatch(fetchTodayIfNeeded(options))
     }
   }
 
-  handleChange (nextOptions) {
-    this.props.dispatch(fetchTodayIfNeeded(nextOptions))
+  handleChange (options) {
+    this.props.dispatch(fetchTodayIfNeeded(options))
   }
 
   handleRefreshClick (e) {
     e.preventDefault()
 
-    const { dispatch, options } = this.props
-    dispatch(fetchTodayIfNeeded({ skip: 100, limit: 5 }))
+    const { dispatch } = this.props
+    dispatch(fetchTodayIfNeeded(options))
   }
 
   render () {
-    const { deals, isFetching, page, lastUpdated } = this.props
+    const { deals, isFetching, lastUpdated } = this.props
     return (
       <div>
         <p>
-          AAA: {JSON.stringify(page)}<br/>
           {lastUpdated &&
             <span>
               Last updated at {new Date(lastUpdated).toLocaleTimeString()}.
@@ -53,7 +53,9 @@ class TodayApp extends Component {
           }
         </p>
         {isFetching && deals.length === 0 &&
-          <h2>Loading...</h2>
+          <div className='progress'>
+             <div className='indeterminate'></div>
+          </div>
         }
         {!isFetching && deals.length === 0 &&
           <h2>Empty.</h2>

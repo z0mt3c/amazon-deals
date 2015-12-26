@@ -22,10 +22,10 @@ var LayoutApp = React.createClass({
       <AppBar title='Amazon Deals' onLeftIconButtonTouchTap={() => this.setState({open: true})}/>
       <LeftNav open={this.state.open} docked={false} onRequestChange={open => this.setState({open})}>
         <MenuItem primaryText='Heute' value='/today' onTouchTap={() => this.browse('/today')}/>
-        <MenuItem primaryText='Suche' value='/deals' onTouchTap={() => this.browse('/deals')}/>
+        <MenuItem primaryText='Suche' value='/search' onTouchTap={() => this.browse('/search')}/>
         <MenuItem primaryText='Reddit Test' value='/reddit' onTouchTap={() => this.browse('/reddit')}/>
       </LeftNav>
-      <div>{this.props.children}</div>
+      <div className='container'>{this.props.children}</div>
     </div>)
   },
 
