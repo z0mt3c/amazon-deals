@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import { fetchTodayIfNeeded } from '../actions/today'
 import Deals from '../components/Deals'
 
+
 class TodayApp extends Component {
   constructor (props) {
     super(props)
