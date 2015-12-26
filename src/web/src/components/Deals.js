@@ -30,7 +30,7 @@ class Deals extends Component {
             <span className='title'>{post.title}</span>
             <p>
               { post.offer.minDealPrice != null ? post.offer.minDealPrice : '?' }
-              {' ' + post.offer.currencyCode + ' '}
+              {' ' + (post.offer.currencyCode || '') + ' '}
               <strike>{post.offer.minCurrentPrice} {post.offer.currencyCode}</strike></p>
           </li>)
 
