@@ -1,42 +1,34 @@
 import { combineReducers } from 'redux'
 import {
-  OPTIONS_TODAY,
-  INVALIDATE_TODAY,
-  REQUEST_TODAY,
-  RECEIVE_TODAY
+  TODAY_SELECT,
+  TODAY_INVALIDATE,
+  TODAY_REQUEST,
+  TODAY_RECEIVE
 } from '../constants'
-
-function options (options = {}, action) {
-  switch (action.type) {
-    case OPTIONS_TODAY:
-      return action.reddit
-    default:
-      return options
-  }
-}
 
 function todayDeals (state = {
   isFetching: false,
   didInvalidate: false,
   items: [],
-  page: {}
+  paging: {}
 }, action) {
   switch (action.type) {
-    case INVALIDATE_TODAY:
+    case TODAY_INVALIDATE:
       return Object.assign({}, state, {
         didInvalidate: true
       })
-    case REQUEST_TODAY:
+    case TODAY_REQUEST:
       return Object.assign({}, state, {
         isFetching: true,
         didInvalidate: false
       })
-    case RECEIVE_TODAY:
+    case TODAY_RECEIVE:
       return Object.assign({}, state, {
         isFetching: false,
         didInvalidate: false,
-        items: action.deals,
-        page: action.page,
+        query: action.query,
+        items: (state.items || []).concat(action.items),
+        paging: action.paging,
         lastUpdated: action.receivedAt
       })
     default:
@@ -44,22 +36,33 @@ function todayDeals (state = {
   }
 }
 
-function dealsByOptions (state = { }, action) {
+function fetch (state = {}, action) {
   switch (action.type) {
-    case INVALIDATE_TODAY:
-    case REQUEST_TODAY:
-    case RECEIVE_TODAY:
-      return Object.assign({}, state, {
-        result: todayDeals(undefined, action)
-      })
-    default:
-      return state
+    case TODAY_INVALIDATE:
+      console.log(action.type, arguments)
+      return Object.assign({}, state, todayDeals(undefined, action))
+
+    case TODAY_REQUEST:
+    case TODAY_RECEIVE:
+      console.log(action.type, arguments)
+      return Object.assign({}, state, todayDeals(state, action))
   }
+
+  return state
+}
+
+function select (state = {}, action) {
+  switch (action.type) {
+    case TODAY_SELECT:
+      return Object.assign({}, action.query)
+  }
+
+  return state
 }
 
 const rootReducer = combineReducers({
-  dealsByOptions,
-  options
+  fetch,
+  select
 })
 
 export default rootReducer

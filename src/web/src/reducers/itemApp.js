@@ -35,7 +35,6 @@ function item (state = {
 }
 
 function itemByAsin (state = { }, action) {
-  console.log('state', state)
   switch (action.type) {
     case RECEIVE_ITEM:
     case REQUEST_ITEM:

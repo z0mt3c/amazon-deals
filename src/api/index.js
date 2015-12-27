@@ -87,7 +87,7 @@ module.exports.register = function (server, options, next) {
       tags: ['api'],
       validate: {
         query: Joi.object({
-          limit: Joi.number().integer().default(5000).optional(),
+          limit: Joi.number().integer().default(50).optional(),
           skip: Joi.number().integer().default(0).optional(),
           since: Joi.date().optional(),
           until: Joi.date().optional()
