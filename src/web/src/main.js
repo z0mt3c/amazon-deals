@@ -9,7 +9,6 @@ import SearchApp from './containers/searchApp'
 import TodayApp from './containers/todayApp'
 import ItemApp from './containers/itemApp'
 import NoMatchApp from './containers/noMatchApp'
-import RedditApp from './containers/redditApp'
 
 import configureStore from './utils/configureStore'
 const store = configureStore()
@@ -28,7 +27,6 @@ render((
       <Route path='/' component={LayoutApp}>
         <IndexRoute component={TodayApp}/>
         <Route path='today' component={TodayApp}/>
-        <Route path='reddit' component={RedditApp}/>
         <Route path='search' component={SearchApp}/>
         <Route path='search/:query' component={SearchApp}/>
         <Route path='item/:asin' component={ItemApp}/>
