@@ -58,7 +58,9 @@ const chars = [
   {key: /Ã¸/g, value: 'ø'},
   {key: /Ã½/g, value: 'ý'},
   {key: /Ã¿/g, value: 'ÿ'},
-  {key: /â‚¬/g, value: '€'}
+  {key: /â‚¬/g, value: '€'},
+  {key: /Â /g, value: ''},
+  {key: /Â°/g, value: '°'}
 ]
 
 export function fixChars (str) {
