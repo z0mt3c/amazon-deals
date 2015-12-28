@@ -10,6 +10,7 @@ class TodayApp extends Component {
     super(props)
     this.loadMore = this.loadMore.bind(this)
     this.changeCategory = this.changeCategory.bind(this)
+    this.handleRefreshClick = this.handleRefreshClick.bind(this)
   }
 
   componentDidMount () {
@@ -32,7 +33,13 @@ class TodayApp extends Component {
   changeCategory (category) {
     const { dispatch, query } = this.props
     dispatch(invalidateToday())
-    dispatch(selectToday(Object.assign(query, { category: category })))
+    dispatch(selectToday(Object.assign({}, query, { category: category })))
+  }
+
+  handleRefreshClick (category) {
+    const { dispatch, query } = this.props
+    dispatch(invalidateToday())
+    dispatch(selectToday(Object.assign({}, query)))
   }
 
   render () {
