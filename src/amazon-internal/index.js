@@ -1,16 +1,13 @@
 import Joi from 'joi'
-import Amazon from '../amazon/amazon'
 import Boom from 'boom'
-import async from 'async'
 import _ from 'lodash'
-import { CronJob } from 'cron'
 import data from './data.js'
-
-var pickFieldsDeal = ['dealID', 'description', 'title', 'type']
-var pickFieldsItem = ['currentPrice', 'currencyCode', 'dealPrice', 'egressUrl', 'isFulfilledByAmazon', 'itemID', 'merchantName', 'merchantID', 'primaryImage']
+import async from 'async'
+import { fixChars } from '../amazon/utils.js'
 
 module.exports.register = function (server, options, next) {
   var client = server.plugins.amazon.client
+  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
 
   server.route({
     method: 'GET',
@@ -136,6 +133,29 @@ module.exports.register = function (server, options, next) {
           }
 
           reply(data)
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/internal/fixChars',
+    config: {
+      tags: ['api', 'internal'],
+      handler: function (request, reply) {
+        items.find({ title: /(Â|Ã|â)/g }, { title: 1 }).toArray(function (error, found) {
+          if (error) {
+            reply(error)
+          }
+
+          async.mapLimit(found, 2, function (item, next) {
+            items.update({ _id: item._id }, { $set: { title: fixChars(item.title) } }, function (error, result) {
+              return next(null, { title: fixChars(item.title), result: result.result, error: error != null })
+            })
+          }, function (error, result) {
+            reply(error || result)
+          })
         })
       }
     }

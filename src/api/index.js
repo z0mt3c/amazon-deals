@@ -8,6 +8,7 @@ import xrc from 'x-result-count'
 // import { MongoClient } from 'mongodb'
 // import assert from 'assert'
 // import { CronJob } from 'cron'
+import { fixChars } from '../amazon/utils'
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
@@ -144,6 +145,7 @@ module.exports.register = function (server, options, next) {
       }
     }
   })
+
   server.route({
     method: 'GET',
     path: '/item/{asin}',
@@ -162,7 +164,6 @@ module.exports.register = function (server, options, next) {
           } else if (!item) {
             return reply(Boom.notFound('Item not found'))
           }
-
           offers.find({ itemId: asin }).sort({ startsAt: 1 }).limit(500).toArray((error, offerList) => {
             if (error) {
               return reply(Boom.badImplementation('Error fetching offers', error))

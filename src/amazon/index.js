@@ -6,6 +6,10 @@ import _ from 'lodash'
 import moment from 'moment'
 import { CronJob } from 'cron'
 import URL from 'url'
+import { fixChars } from './utils'
+
+const pickForOffer = ['maxBAmount', 'startsAt', 'endsAt', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode']
+const pickForItem = ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon', 'updatedAt']
 
 module.exports.register = function (server, options, next) {
   var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
@@ -107,7 +111,16 @@ module.exports.register = function (server, options, next) {
 
           var result = _.reduce(data.dealDetails || [], function (memo, dealDetail) {
             var deal = dealDetail
+            deal.title = fixChars(deal.title)
+            deal.teaser = fixChars(deal.teaser)
+            deal.description = fixChars(deal.description)
             deal.status = data.dealStatus[dealDetail.dealID]
+            deal.teaserImage = internals.stripHost(deal.teaserImage)
+            deal.teaserImage = internals.stripHost(deal.teaserImage)
+            deal.primaryImage = internals.stripHost(deal.primaryImage)
+            deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
+            deal.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
+            deal.updatedAt = new Date()
             memo.push(deal)
             return memo
           }, [])
@@ -121,12 +134,9 @@ module.exports.register = function (server, options, next) {
           }
 
           async.eachLimit(result, 1, function (deal, next) {
-            deal.teaserImage = internals.stripHost(deal.teaserImage)
-            deal.primaryImage = internals.stripHost(deal.primaryImage)
-            var set = _.pick(deal, ['maxBAmount', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode'])
+            var set = _.pick(deal, pickForOffer)
             set.itemId = deal.impressionAsin || deal.teaserAsin
-            set.startsAt = deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
-            set.endsAt = deal.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
+
             offers.updateOne({ _id: deal.dealID }, { $set: set }, function (error, r) {
               if (error) {
                 offerStatus.error += 1
@@ -152,8 +162,7 @@ module.exports.register = function (server, options, next) {
           }
 
           async.eachLimit(result, 1, function (deal, next) {
-            var updateData = _.pick(deal, ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon'])
-            updateData.updatedAt = new Date()
+            var updateData = _.pick(deal, pickForItem)
             items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
               if (error) {
                 articleStatus.error += 1

@@ -24,6 +24,7 @@ export default class Item extends Component {
           <table className='bordered'>
             <thead>
               <tr>
+                  <th data-field="dealId">ID</th>
                   <th data-field="date">Datum</th>
                   <th data-field="dealPrice">Deal-Preis</th>
                   <th data-field="currentPrice">Normal-Preis</th>
@@ -32,6 +33,7 @@ export default class Item extends Component {
 
             <tbody>
               {_.map(item.offers, offer => <tr key={offer._id}>
+                <td>{offer._id}</td>
                 <td>{moment(offer.startsAt).format('DD.MM.YYYY HH:mm')}</td>
                 <td>{offer.minDealPrice || '?'} {offer.currencyCode}</td>
                 <td>{offer.minCurrentPrice} {offer.currencyCode}</td>
