@@ -2,6 +2,12 @@
 
 @import "./materialize.scss";
 
-body {
-  padding-bottom: 20px;
+.clearfix::after {
+  display: block;
+  content: '';
+  clear: both;
+}
+
+.pull-right {
+  float: right;
 }

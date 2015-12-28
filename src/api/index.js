@@ -89,6 +89,7 @@ module.exports.register = function (server, options, next) {
         query: Joi.object({
           limit: Joi.number().integer().default(50).optional(),
           skip: Joi.number().integer().default(0).optional(),
+          category: Joi.number().integer().optional(),
           since: Joi.date().optional(),
           until: Joi.date().optional()
         })
@@ -97,13 +98,19 @@ module.exports.register = function (server, options, next) {
         var page = { skip: request.query.skip }
         var since = request.query.since || moment().startOf('day').toDate()
         var until = request.query.until || moment(since).add(1, 'day').startOf('day').toDate()
-        var query = offers.find({
+        var mquery = {
           startsAt: {
             $gte: since,
             $lt: until
           }
-        })
-        .sort({ startsAt: 1 })
+        }
+
+        if (request.query.category) {
+          mquery.categoryIds = request.query.category + ''
+        }
+
+        var query = offers.find(mquery)
+          .sort({ startsAt: 1 })
 
         query.count(function (error, total) {
           if (error) {
@@ -113,26 +120,26 @@ module.exports.register = function (server, options, next) {
           page.total = total
 
           query
-          .skip(request.query.skip)
-          .limit(request.query.limit)
-          .toArray(function (error, docs) {
-            if (error) {
-              return reply(Boom.badImplementation('Error fetching deals', error))
-            }
-
-            async.mapLimit(docs, 5, function (offer, next) {
-              items.findOne({ _id: offer.itemId }, function (error, item) {
-                next(error, _.extend({}, item, { offer: offer }))
-              })
-            }, function (error, mapped) {
+            .skip(request.query.skip)
+            .limit(request.query.limit)
+            .toArray(function (error, docs) {
               if (error) {
                 return reply(Boom.badImplementation('Error fetching deals', error))
               }
 
-              page.count = docs.length
-              return reply(mapped).header('x-result-count', xrc.generate(page))
+              async.mapLimit(docs, 5, function (offer, next) {
+                items.findOne({ _id: offer.itemId }, function (error, item) {
+                  next(error, _.extend({}, item, { offer: offer }))
+                })
+              }, function (error, mapped) {
+                if (error) {
+                  return reply(Boom.badImplementation('Error fetching deals', error))
+                }
+
+                page.count = docs.length
+                return reply(mapped).header('x-result-count', xrc.generate(page))
+              })
             })
-          })
         })
       }
     }

@@ -39,7 +39,6 @@ function todayDeals (state = {
 function fetch (state = {}, action) {
   switch (action.type) {
     case TODAY_INVALIDATE:
-      console.log(action.type, arguments)
       return Object.assign({}, state, todayDeals(undefined, action))
 
     case TODAY_REQUEST:

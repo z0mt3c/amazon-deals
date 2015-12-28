@@ -6,8 +6,15 @@ import _ from 'lodash'
 import {
   TODAY_SELECT,
   TODAY_REQUEST,
+  TODAY_INVALIDATE,
   TODAY_RECEIVE
 } from '../constants'
+
+export function invalidateToday () {
+  return {
+    type: TODAY_INVALIDATE
+  }
+}
 
 export function selectToday (query) {
   return {
@@ -79,7 +86,7 @@ export function fetchToday (query) {
   return (dispatch, getState) => {
     var { count, skip, total } = getState().todayApp.fetch.paging || { count: 0, skip: 0 }
     if (total == null || count + skip < total) {
-      return dispatch(_fetchToday(query, count + skip))
+      return dispatch(_fetchToday(query, (count || 0) + (skip || 0)))
     }
   }
 }

@@ -43,7 +43,7 @@
     "isomorphic-fetch": "^2.2.0",
     "joi": "^7.0.1",
     "lodash": "^3.10.1",
-    "material-ui": "0.14.0-rc2",
+    "material-ui": "0.14.0",
     "materialize-css": "^0.97.5",
     "moment": "^2.10.6",
     "moment-timezone": "^0.4.1",

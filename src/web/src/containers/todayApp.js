@@ -1,13 +1,15 @@
 import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { fetchToday, selectToday } from '../actions/today'
+import { fetchToday, selectToday, invalidateToday } from '../actions/today'
 import Deals from '../components/Deals'
+import CategoryPicker from '../components/CategoryPicker'
 
 class TodayApp extends Component {
 
   constructor (props) {
     super(props)
     this.loadMore = this.loadMore.bind(this)
+    this.changeCategory = this.changeCategory.bind(this)
   }
 
   componentDidMount () {
@@ -27,10 +29,19 @@ class TodayApp extends Component {
     dispatch(fetchToday(query))
   }
 
+  changeCategory (category) {
+    const { dispatch, query } = this.props
+    dispatch(invalidateToday())
+    dispatch(selectToday(Object.assign(query, { category: category })))
+  }
+
   render () {
-    const { items, paging, isFetching, lastUpdated } = this.props
+    const { query, items, paging, isFetching, lastUpdated } = this.props
     return (
       <div>
+        <div className='clearfix'>
+          <div className='pull-right'><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
+        </div>
         <p>
           {lastUpdated &&
             <span>
