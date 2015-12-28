@@ -36,6 +36,16 @@ module.exports.register = function (server, options, next) {
   })
 
   server.route({
+    method: 'GET',
+    path: '/font/{param*}',
+    handler: {
+      directory: {
+        path: Path.join(__dirname, '../../node_modules/materialize-css/font')
+      }
+    }
+  })
+
+  server.route({
     method: ['GET'],
     path: '/images/{p*}',
     config: {
