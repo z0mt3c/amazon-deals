@@ -27,10 +27,6 @@ class TodayApp extends Component {
     }
   }
 
-  componentWillUpdate () {
-    console.log(this)
-  }
-
   loadMore () {
     const { dispatch, query } = this.props
     dispatch(fetchToday(query))

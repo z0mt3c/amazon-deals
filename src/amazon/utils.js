@@ -1,3 +1,5 @@
+import URL from 'url'
+
 const chars = [
   {key: /Ã¼/g, value: 'ü'},
   {key: /Ã¤/g, value: 'ä'},
@@ -69,4 +71,8 @@ export function fixChars (str) {
   }
 
   return str
+}
+
+export function stripHost (url) {
+  return url != null && url !== '' && url.indexOf('http') !== -1 ? URL.parse(url).path : url
 }

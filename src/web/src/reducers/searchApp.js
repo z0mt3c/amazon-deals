@@ -1,28 +1,28 @@
 import { combineReducers } from 'redux'
 import {
-  TODAY_SELECT,
-  TODAY_INVALIDATE,
-  TODAY_REQUEST,
-  TODAY_RECEIVE
+  SEARCH_SELECT,
+  SEARCH_INVALIDATE,
+  SEARCH_REQUEST,
+  SEARCH_RECEIVE
 } from '../constants'
 
-function todayDeals (state = {
+function searchResults (state = {
   isFetching: false,
   didInvalidate: false,
   items: [],
   paging: {}
 }, action) {
   switch (action.type) {
-    case TODAY_INVALIDATE:
+    case SEARCH_INVALIDATE:
       return Object.assign({}, state, {
         didInvalidate: true
       })
-    case TODAY_REQUEST:
+    case SEARCH_REQUEST:
       return Object.assign({}, state, {
         isFetching: true,
         didInvalidate: false
       })
-    case TODAY_RECEIVE:
+    case SEARCH_RECEIVE:
       return Object.assign({}, state, {
         isFetching: false,
         didInvalidate: false,
@@ -38,12 +38,12 @@ function todayDeals (state = {
 
 function fetch (state = {}, action) {
   switch (action.type) {
-    case TODAY_INVALIDATE:
-      return Object.assign({}, state, todayDeals(undefined, action))
+    case SEARCH_INVALIDATE:
+      return Object.assign({}, state, searchResults(undefined, action))
 
-    case TODAY_REQUEST:
-    case TODAY_RECEIVE:
-      return Object.assign({}, state, todayDeals(state, action))
+    case SEARCH_REQUEST:
+    case SEARCH_RECEIVE:
+      return Object.assign({}, state, searchResults(state, action))
   }
 
   return state
@@ -51,7 +51,7 @@ function fetch (state = {}, action) {
 
 function select (state = {}, action) {
   switch (action.type) {
-    case TODAY_SELECT:
+    case SEARCH_SELECT:
       return Object.assign({}, action.query)
   }
 

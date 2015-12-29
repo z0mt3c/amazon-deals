@@ -1,117 +1,130 @@
+import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { pushPath } from 'redux-simple-router'
+import { fetchSearch, selectSearch, invalidateSearch } from '../actions/search'
+import Results from '../components/Results'
+import TextField from 'material-ui/lib/text-field'
+import CategoryPicker from '../components/CategoryPicker'
 
-import React, { PropTypes } from 'react'
-import LazyLoad from 'react-lazy-load'
+class SearchApp extends Component {
 
-let Toolbar = require('material-ui/lib/toolbar/toolbar')
-let TextField = require('material-ui/lib/text-field')
-let GridList = require('material-ui/lib/grid-list/grid-list')
-let GridTile = require('material-ui/lib/grid-list/grid-tile')
-let IconButton = require('material-ui/lib/icon-button')
-require('react-tap-event-plugin')()
-let superagent = require('superagent')
-
-var HistoryApp = React.createClass({
-  getInitialState () {
-    let query = ''
-    if (this.props.params && this.props.params.query != null) {
-      query = this.props.params.query
-    }
-
-    return {
-      query: query,
-      windowWidth: window.innerWidth,
-      message: 'Suchbegriff eingeben (mindestens 3 Zeichen)',
-      dataList: [],
-      dataItem: null
-    }
-  },
-
-  handleResize (e) {
-    this.setState({windowWidth: window.innerWidth})
-  },
+  constructor (props) {
+    super(props)
+    this.loadMore = this.loadMore.bind(this)
+    this.changeCategory = this.changeCategory.bind(this)
+    this.handleRefreshClick = this.handleRefreshClick.bind(this)
+    this.changeKeyword = this.changeKeyword.bind(this)
+  }
 
   componentDidMount () {
-    if (this.state.query.length > 3) {
-      this.doSearch(this.state.query)
+    const { dispatch, query } = this.props
+    dispatch(selectSearch(query))
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.query !== this.props.query) {
+      const { dispatch, query } = nextProps
+      dispatch(fetchSearch(query))
     }
-    window.addEventListener('resize', this.handleResize)
-  },
+  }
 
-  componentWillUnmount () {
-    window.removeEventListener('resize', this.handleResize)
-  },
+  loadMore () {
+    const { dispatch, query } = this.props
+    dispatch(fetchSearch(query))
+  }
 
-  _handleChange (event) {
-    var query = event.target.value
-    this.setState({ query: query, dataList: [], message: 'Suche mit ENTER bestätigen (mindestens 3 Zeichen)' })
-  },
+  changeCategory (category) {
+    const { dispatch, query } = this.props
+    dispatch(invalidateSearch())
+    dispatch(selectSearch(Object.assign({}, query, { category: category })))
+  }
 
-  _handleKeyPress (event) {
-    var query = this.state.query
+  changeKeyword (event) {
     if (event.key === 'Enter') {
-      if (query.length >= 3) {
-        this.doSearch(query)
-      } else {
-        this.setState({ dataList: [], message: 'Suchbegriff eingeben (mindestens 3 Zeichen)' })
-      }
+      const { dispatch, query } = this.props
+      dispatch(invalidateSearch())
+      let value = event.target.value
+      dispatch(selectSearch(Object.assign({}, query, { q: value === '' ? undefined : value })))
     }
-  },
+  }
 
-  doSearch (query) {
-    this.props.dispatch(pushPath('/search/' + encodeURIComponent(query)))
-    superagent.get('/api/deals')
-      .query({ q: query })
-      .set('Accept', 'application/json')
-      .end(function (err, res) {
-        if (err) {
-          console.log(err)
-        }
-        var result = res.body || []
-        this.setState({ dataList: result, message: result.length === 0 ? 'Keine Treffer' : null })
-      }.bind(this))
-  },
-
-  onItemClicked (item) {
-    this.props.dispatch(pushPath('/item/' + item._id))
-  },
+  handleRefreshClick (category) {
+    const { dispatch, query } = this.props
+    dispatch(invalidateSearch())
+    dispatch(selectSearch(Object.assign({}, query)))
+  }
 
   render () {
-    var message = null
-
-    if (this.state.message) {
-      message = <div style={{padding: 50, textAlign: 'center'}}>
-        {this.state.message}
+    const { query, items, paging, isFetching, lastUpdated } = this.props
+    return (
+      <div>
+        <div className='clearfix'>
+            <TextField hintText='Suchbegriff' floatingLabelText='Suchen' onKeyPress={this.changeKeyword} className='pull-left'/>
+            <div className='pull-right' style={{marginTop: 16}}><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
+        </div>
+        <p>
+          {lastUpdated &&
+            <span>
+              Geladen um {new Date(lastUpdated).toLocaleTimeString()} Uhr.
+              {' '}
+            </span>
+          }
+          {!isFetching &&
+            <a href='#' onClick={this.handleRefreshClick}>
+              Aktualisieren
+            </a>
+          }
+        </p>
+        {isFetching && items.length === 0 &&
+          <div className='progress'>
+             <div className='indeterminate'></div>
+          </div>
+        }
+        {!isFetching && items.length === 0 &&
+          <h4>Nichts gefunden :-(</h4>
+        }
+        {items.length > 0 &&
+          <div>
+            <Results deals={items} />
+          </div>
+        }
+        {items.length > 0 && paging.count + paging.skip < paging.total &&
+          <a className='waves-effect waves-light btn' style={{ width: '100%' }} onClick={() => this.loadMore()}>more</a>
+        }
       </div>
-    }
-
-    return (<div>
-              <Toolbar>
-                  <TextField hintText='Begriff / Artikelnummer eingeben' value={this.state.query} onChange={this._handleChange} fullWidth={true} onKeyPress={this._handleKeyPress}/>
-              </Toolbar>
-              {message}
-              {this.renderList()}
-            </div>)
-  },
-
-  renderList () {
-    var self = this
-    return <GridList cellHeight={350} style={{width: '100%', overflowY: 'auto'}} cols={Math.floor(this.state.windowWidth / 420) + 1}>
-      {this.state.dataList.map(function (item) {
-        // var itemClicked = self.onItemClicked.bind(self, item)
-        return <GridTile key={item._id} title={item.title} onClick={() => self.onItemClicked(item)} actionIcon={<IconButton iconClassName='muidocs-icon' tooltip='icon'/>}>
-           <LazyLoad>
-             <img src={item.teaserImage || item.primaryImage} width='100%' />
-           </LazyLoad>
-        </GridTile> })}
-    </GridList>
-  },
-
-  propTypes: {
-    params: PropTypes.object,
-    dispatch: PropTypes.func.isRequired
+    )
   }
-})
+}
 
-export default connect()(HistoryApp)
+SearchApp.propTypes = {
+  query: PropTypes.object.isRequired,
+  paging: PropTypes.object.isRequired,
+  items: PropTypes.array.isRequired,
+  isFetching: PropTypes.bool.isRequired,
+  lastUpdated: PropTypes.number,
+  dispatch: PropTypes.func.isRequired
+}
+
+function mapStateToProps (state) {
+  const { fetch, select: query } = state.searchApp
+  const {
+    paging,
+    items,
+    isFetching,
+    lastUpdated
+  } = Object.assign({}, {
+    query: {},
+    isFetching: true,
+    paging: {},
+    items: []
+  }, fetch)
+
+  return {
+    query,
+    paging,
+    items,
+    isFetching,
+    lastUpdated
+  }
+}
+
+export default connect(mapStateToProps)(SearchApp)

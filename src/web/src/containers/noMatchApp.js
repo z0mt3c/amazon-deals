@@ -1,14 +1,10 @@
 import React from 'react'
 
 module.exports = React.createClass({
-  componentDidMount() {
-    this.setState({})
-  },
-
-  render() {
+  render () {
     return (
     <div>
-        <h2>NoMatch</h2>
+        <h2>Seite nicht gefunden</h2>
       </div>
     )
   }

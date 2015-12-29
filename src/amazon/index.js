@@ -5,9 +5,8 @@ import async from 'async'
 import _ from 'lodash'
 import moment from 'moment'
 import { CronJob } from 'cron'
-import URL from 'url'
 import Hoek from 'hoek'
-import { fixChars } from './utils'
+import { fixChars, stripHost } from './utils'
 
 const pickForOffer = ['title', 'maxBAmount', 'startsAt', 'endsAt', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode']
 const pickForItem = ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon', 'updatedAt']
@@ -32,9 +31,6 @@ module.exports.register = function (server, options, next) {
   server.expose('client', amazon)
 
   var internals = {
-    stripHost: function (url) {
-      return url != null ? URL.parse(url).path : null
-    },
     notify: function notify (deal) {
       server.log([ 'deal' ], deal)
     },
@@ -118,9 +114,9 @@ module.exports.register = function (server, options, next) {
             deal.teaser = fixChars(deal.teaser)
             deal.description = fixChars(deal.description)
             deal.status = data.dealStatus[dealDetail.dealID]
-            deal.teaserImage = internals.stripHost(deal.teaserImage)
-            deal.teaserImage = internals.stripHost(deal.teaserImage)
-            deal.primaryImage = internals.stripHost(deal.primaryImage)
+            deal.teaserImage = stripHost(deal.teaserImage)
+            deal.teaserImage = stripHost(deal.teaserImage)
+            deal.primaryImage = stripHost(deal.primaryImage)
             deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
             deal.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
             deal.updatedAt = new Date()

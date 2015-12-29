@@ -2,80 +2,71 @@ import Joi from 'joi'
 import Boom from 'boom'
 import _ from 'lodash'
 import moment from 'moment'
-// import config from '../config'
 import async from 'async'
 import xrc from 'x-result-count'
-// import { MongoClient } from 'mongodb'
-// import assert from 'assert'
-// import { CronJob } from 'cron'
-import { fixChars } from '../amazon/utils'
+import { stripHost } from '../amazon/utils'
 
 module.exports.register = function (server, options, next) {
-  var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
   var items = server.plugins['hapi-mongodb-profiles'].collection('items')
   var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
 
   server.route({
     method: 'GET',
-    path: '/deals/old',
+    path: '/search',
     config: {
       tags: ['api'],
       validate: {
         query: Joi.object({
-          q: Joi.string().required()
+          q: Joi.string().optional(),
+          limit: Joi.number().integer().default(50).optional(),
+          skip: Joi.number().integer().default(0).optional(),
+          category: Joi.number().integer().optional()
         })
       },
       handler: function (request, reply) {
+        var page = { skip: request.query.skip }
         var query = {}
-        var conditions = []
-        var q = request.query.q
-        conditions.push({_id: q})
-        conditions.push({'prices.itemID': q})
-        conditions.push({'prices.dealID': q})
-        conditions.push({'title': { $regex: q, $options: 'i' }})
-        query = { $or: conditions }
 
-        deals.find(query).limit(100).toArray(function (error, results) {
+        var q = request.query.q
+        var conditions = []
+        if (q) {
+          conditions.push({_id: q})
+          conditions.push({'title': { $regex: q, $options: 'i' }})
+        }
+
+        if (conditions.length > 0) {
+          query['$or'] = conditions
+        }
+
+        if (request.query.category) {
+          query.categoryIds = request.query.category + ''
+        }
+
+        let find = items.find(query)
+
+        find.count(function (error, total) {
           if (error) {
             return reply(Boom.badImplementation('Error fetching deals', error))
           }
 
-          reply(_.map(results, function (item) {
-            item.primaryImage = item.primaryImage ? item.primaryImage.substr(39) : null
-            return item
-          }))
-        })
-      }
-    }
-  })
+          page.total = total
 
-  server.route({
-    method: 'GET',
-    path: '/deals',
-    config: {
-      tags: ['api'],
-      validate: {
-        query: Joi.object({
-          q: Joi.string().required()
-        })
-      },
-      handler: function (request, reply) {
-        var query = {}
-        var conditions = []
-        var q = request.query.q
-        conditions.push({_id: q})
-        conditions.push({'title': { $regex: q, $options: 'i' }})
-        query = { $or: conditions }
+          find.sort({_id: 1})
+            .skip(request.query.skip)
+            .limit(request.query.limit)
+            .toArray(function (error, results) {
+              if (error) {
+                return reply(Boom.badImplementation('Error fetching deals', error))
+              }
 
-        items.find(query).limit(100).toArray(function (error, results) {
-          if (error) {
-            return reply(Boom.badImplementation('Error fetching deals', error))
-          }
+              page.count = results.length
 
-          reply(_.map(results, function (item) {
-            item.primaryImage = _.contains(item.primaryImage, 'http') ? item.primaryImage.substr(39) : item.primaryImage
-            return item
-          }))
+              reply(_.map(results, function (item) {
+                item.primaryImage = stripHost(item.primaryImage)
+                item.teaserImage = stripHost(item.teaserImage)
+                return item
+              })).header('x-result-count', xrc.generate(page))
+            })
         })
       }
     }
