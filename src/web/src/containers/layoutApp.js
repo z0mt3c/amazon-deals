@@ -19,7 +19,7 @@ var LayoutApp = React.createClass({
 
   render () {
     return (<div>
-      <AppBar title='Amazon Deals' onLeftIconButtonTouchTap={() => this.setState({open: true})}/>
+      <AppBar title='Blitzangebote' onLeftIconButtonTouchTap={() => this.setState({open: true})}/>
       <LeftNav open={this.state.open} docked={false} onRequestChange={open => this.setState({open})}>
         <MenuItem primaryText='Heute' value='/today' onTouchTap={() => this.browse('/today')}/>
         <MenuItem primaryText='Suche' value='/search' onTouchTap={() => this.browse('/search')}/>
