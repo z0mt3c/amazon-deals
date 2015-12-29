@@ -41,7 +41,7 @@ export function receiveToday (query, items, paging) {
   }
 }
 
-function _fetchToday (query, skip = 0, limit = 50) {
+function _fetchToday (query, skip = 0, limit = 100) {
   return dispatch => {
     dispatch(requestToday(query))
     let q = Qs.stringify(Object.assign({}, query, { skip, limit }))
