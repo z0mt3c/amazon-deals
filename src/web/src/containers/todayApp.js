@@ -57,10 +57,15 @@ class TodayApp extends Component {
     const { query, items, paging, isFetching, lastUpdated } = this.props
     return (
       <div>
-        <div className='clearfix'>
-            <TextField hintText='Suchbegriff' floatingLabelText='Suchen' onKeyPress={this.changeKeyword} className='pull-left'/>
-            <div className='pull-right' style={{marginTop: 16}}><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
+        <div className='row'>
+          <div className='col s12 m6'>
+            <TextField hintText='Suchbegriff' floatingLabelText='Suchen' fullWidth={true} onKeyPress={this.changeKeyword} className='pull-left'/>
+          </div>
+          <div className='col s12 m6'>
+            <div className='pull-right' style={{marginTop: 16, marginRight: -20}}><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
+          </div>
         </div>
+
         <p>
           {lastUpdated &&
             <span>
