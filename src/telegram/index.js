@@ -1,12 +1,6 @@
-// import Joi from 'joi'
-// import config from '../config'
-// import Boom from 'boom'
-// import async from 'async'
 import _ from 'lodash'
-// import { MongoClient } from 'mongodb'
 import assert from 'assert'
 import moment from 'moment'
-// import { CronJob } from 'cron'
 import TelegramBot from 'node-telegram-bot-api'
 
 var registeredKeywords = []

@@ -47,7 +47,12 @@ server.register([
     register: require('hapi-swaggered-ui'),
     options: {
       title: pkg.name,
-      authorization: false,
+      authorization: {
+        scope: 'header',
+        field: 'Authorization',
+        valuePrefix: 'bearer ',
+        placeholder: 'API-Key'
+      },
       path: '/docs',
       swaggerOptions: {
         validatorUrl: null
@@ -76,6 +81,11 @@ server.register([
   server.register([{
     register: require('./src/api'),
     options: {}
+  }, {
+    register: require('./src/auth-apikey'),
+    options: {
+      apiKey: process.env.API_KEY || '$2a$10$9YOfirurCQ180TjAPVZLEOWXl0YbN8l2SJJ61OgfxMdQbay4AwIvu'
+    }
   }, {
     register: require('./src/amazon'),
     options: {

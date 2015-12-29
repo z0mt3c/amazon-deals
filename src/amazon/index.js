@@ -226,7 +226,8 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/update/metadata',
     config: {
-      tags: ['api'],
+      auth: 'apikey',
+      tags: ['api', 'maintenance'],
       handler: function (request, reply) {
         internals.loadMetadata()
         reply('OK')
@@ -238,7 +239,8 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/update/offer',
     config: {
-      tags: ['api'],
+      auth: 'apikey',
+      tags: ['api', 'maintenance'],
       handler: function (request, reply) {
         internals.updateOffers()
         reply('OK')

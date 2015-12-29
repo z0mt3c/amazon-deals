@@ -4,6 +4,7 @@ import _ from 'lodash'
 import data from './data.js'
 import async from 'async'
 import { fixChars } from '../amazon/utils.js'
+import Bcrypt from 'bcrypt'
 
 module.exports.register = function (server, options, next) {
   var client = server.plugins.amazon.client
@@ -14,6 +15,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/deal/category/{categoryId}/deal',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         params: Joi.object({
@@ -30,6 +32,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/deal/state/{state}/deal',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         params: Joi.object({
@@ -46,6 +49,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/deal/type/{type}/deal',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         params: Joi.object({
@@ -62,6 +66,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/deal/accessType/{accessType}/deal',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         params: Joi.object({
@@ -78,6 +83,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/getDealMetadata',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       handler: function (request, reply) {
         client.getDealMetadata(function (error, data) {
@@ -95,6 +101,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/getDeals',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         query: Joi.object({
@@ -119,6 +126,7 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/getDealStatus',
     config: {
+      auth: 'apikey',
       tags: ['api', 'internal'],
       validate: {
         query: Joi.object({
@@ -143,7 +151,8 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/fixChars',
     config: {
-      tags: ['api', 'internal'],
+      auth: 'apikey',
+      tags: ['api', 'maintenance'],
       handler: function (request, reply) {
         items.find({ title: /(Â|Ã|â)/g }, { title: 1 }).toArray(function (error, found) {
           if (error) {
@@ -166,7 +175,8 @@ module.exports.register = function (server, options, next) {
     method: 'GET',
     path: '/internal/updateCategories',
     config: {
-      tags: ['api', 'internal'],
+      auth: 'apikey',
+      tags: ['api', 'maintenance'],
       handler: function (request, reply) {
         items.find({ categoryIds: { $exists: false } }, { _id: 1 }).toArray(function (error, found) {
           if (error) {
@@ -181,6 +191,36 @@ module.exports.register = function (server, options, next) {
                 var categoryIds = offer.categoryIds || []
                 items.update({ _id: item._id }, { $addToSet: { categoryIds: { $each: categoryIds } } }, function (error, result) {
                   return next(null, { itemId: item._id, result: result.result, error: error != null })
+                })
+              }
+            })
+          }, function (error, result) {
+            reply(error || result)
+          })
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/internal/updateOfferTitle',
+    config: {
+      auth: 'apikey',
+      tags: ['api', 'maintenance'],
+      handler: function (request, reply) {
+        offers.find({ title: { $exists: false } }, { _id: 1, itemId: 1 }).toArray(function (error, found) {
+          if (error) {
+            reply(error)
+          }
+
+          async.mapLimit(found, 2, function (offer, next) {
+            items.findOne({ _id: offer.itemId }, { title: 1 }, function (error, item) {
+              if (error || !item) {
+                return next(null, { item: item, error: error, offer: offer })
+              } else {
+                offers.update({ _id: offer._id }, { $set: { title: item.title } }, function (error, result) {
+                  return next(null, { item: item, offer: offer, result: result.result, error: error != null })
                 })
               }
             })
