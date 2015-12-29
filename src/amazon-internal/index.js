@@ -8,6 +8,7 @@ import { fixChars } from '../amazon/utils.js'
 module.exports.register = function (server, options, next) {
   var client = server.plugins.amazon.client
   var items = server.plugins['hapi-mongodb-profiles'].collection('items')
+  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
 
   server.route({
     method: 'GET',
@@ -152,6 +153,36 @@ module.exports.register = function (server, options, next) {
           async.mapLimit(found, 2, function (item, next) {
             items.update({ _id: item._id }, { $set: { title: fixChars(item.title) } }, function (error, result) {
               return next(null, { title: fixChars(item.title), result: result.result, error: error != null })
+            })
+          }, function (error, result) {
+            reply(error || result)
+          })
+        })
+      }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/internal/updateCategories',
+    config: {
+      tags: ['api', 'internal'],
+      handler: function (request, reply) {
+        items.find({ categoryIds: { $exists: false } }, { _id: 1 }).toArray(function (error, found) {
+          if (error) {
+            reply(error)
+          }
+
+          async.mapLimit(found, 2, function (item, next) {
+            offers.findOne({ itemId: item._id }, { categoryIds: 1 }, function (error, offer) {
+              if (error || !offer) {
+                return next({ item: item, error: error, offer: offer })
+              } else {
+                var categoryIds = offer.categoryIds || []
+                items.update({ _id: item._id }, { $addToSet: { categoryIds: { $each: categoryIds } } }, function (error, result) {
+                  return next(null, { itemId: item._id, result: result.result, error: error != null })
+                })
+              }
             })
           }, function (error, result) {
             reply(error || result)

@@ -6,9 +6,10 @@ import _ from 'lodash'
 import moment from 'moment'
 import { CronJob } from 'cron'
 import URL from 'url'
+import Hoek from 'hoek'
 import { fixChars } from './utils'
 
-const pickForOffer = ['maxBAmount', 'startsAt', 'endsAt', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode']
+const pickForOffer = ['title', 'maxBAmount', 'startsAt', 'endsAt', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode']
 const pickForItem = ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon', 'updatedAt']
 
 module.exports.register = function (server, options, next) {
@@ -93,12 +94,13 @@ module.exports.register = function (server, options, next) {
     },
     updateOffers: function (query) {
       query = _.isObject(query) ? query : {minDealPrice: null, startsAt: { $lte: moment().add(10, 'minute').toDate(), $gte: moment().subtract(4, 'hour').toDate() }}
-      offers.find(query, { _id: 1 }).limit(5000).toArray(function (error, docs) {
+      offers.find(query, { _id: 1, categoryIds: 1 }).limit(5000).toArray(function (error, docs) {
         if (error) {
           server.log(['error', 'offersFind'], error)
         }
 
         var unknownOffers = _.pluck(docs, '_id')
+        var indexedOffers = _.indexBy(docs, '_id')
         server.log(['info'], 'Processing ' + unknownOffers.length + ' unknown offers')
 
         var offset = new Date().getTime()
@@ -111,6 +113,7 @@ module.exports.register = function (server, options, next) {
 
           var result = _.reduce(data.dealDetails || [], function (memo, dealDetail) {
             var deal = dealDetail
+            deal.categoryIds = Hoek.reach(indexedOffers[deal.dealID], 'categoryIds') || []
             deal.title = fixChars(deal.title)
             deal.teaser = fixChars(deal.teaser)
             deal.description = fixChars(deal.description)
@@ -163,7 +166,7 @@ module.exports.register = function (server, options, next) {
 
           async.eachLimit(result, 1, function (deal, next) {
             var updateData = _.pick(deal, pickForItem)
-            items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
+            items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $addToSet: { categoryIds: { $each: deal.categoryIds } }, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
               if (error) {
                 articleStatus.error += 1
               } else {
