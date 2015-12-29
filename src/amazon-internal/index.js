@@ -176,7 +176,7 @@ module.exports.register = function (server, options, next) {
           async.mapLimit(found, 2, function (item, next) {
             offers.findOne({ itemId: item._id }, { categoryIds: 1 }, function (error, offer) {
               if (error || !offer) {
-                return next({ item: item, error: error, offer: offer })
+                return next(null, { item: item, error: error, offer: offer })
               } else {
                 var categoryIds = offer.categoryIds || []
                 items.update({ _id: item._id }, { $addToSet: { categoryIds: { $each: categoryIds } } }, function (error, result) {
