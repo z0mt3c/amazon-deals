@@ -88,6 +88,7 @@ module.exports.register = function (server, options, next) {
       tags: ['api'],
       validate: {
         query: Joi.object({
+          q: Joi.string(),
           limit: Joi.number().integer().default(50).optional(),
           skip: Joi.number().integer().default(0).optional(),
           category: Joi.number().integer().optional(),
@@ -104,6 +105,14 @@ module.exports.register = function (server, options, next) {
             $gte: since,
             $lt: until
           }
+        }
+
+        var q = request.query.q
+        if (q) {
+          let conditions = mquery['$or'] = []
+          conditions.push({_id: q})
+          conditions.push({itemId: q})
+          conditions.push({'title': { $regex: q, $options: 'i' }})
         }
 
         if (request.query.category) {

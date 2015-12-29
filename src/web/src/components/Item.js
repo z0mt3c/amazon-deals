@@ -1,10 +1,9 @@
-import moment from 'moment'
 import _ from 'lodash'
 import React, { PropTypes, Component } from 'react'
 import OfferChart from './OfferChart'
 
 export default class Item extends Component {
-  render() {
+  render () {
     const { item } = this.props
 
     if (item && item._id) {
@@ -24,18 +23,18 @@ export default class Item extends Component {
           <table className='bordered'>
             <thead>
               <tr>
-                  <th data-field="dealId">ID</th>
-                  <th data-field="date">Datum</th>
-                  <th data-field="dealPrice">Deal-Preis</th>
-                  <th data-field="currentPrice">Normal-Preis</th>
+                  <th data-field='dealId'>ID</th>
+                  <th data-field='date'>Datum</th>
+                  <th data-field='dealPrice'>Deal-Preis</th>
+                  <th data-field='currentPrice'>Normal-Preis</th>
               </tr>
             </thead>
 
             <tbody>
               {_.map(item.offers, offer => <tr key={offer._id}>
                 <td>{offer._id}</td>
-                <td>{moment(offer.startsAt).format('DD.MM.YYYY HH:mm')}</td>
-                <td>{offer.minDealPrice || '?'} {offer.currencyCode}</td>
+                <td>{new Date(offer.startsAt).toLocaleString()}</td>
+                <td>{offer.minDealPrice || '?'} {offer.currencyCode}</td>
                 <td>{offer.minCurrentPrice} {offer.currencyCode}</td>
               </tr>)}
             </tbody>
@@ -43,7 +42,7 @@ export default class Item extends Component {
         </div>
       </div>
       <br/>
-      <a href={url} target='blank' className='waves-effect waves-light btn' style={{float:'right'}}>Zu Amazon</a>
+      <a href={url} target='blank' className='waves-effect waves-light btn' style={{float: 'right'}}>Zu Amazon</a>
       <br/><br/>
       </div>
       )

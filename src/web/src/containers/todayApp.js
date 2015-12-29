@@ -2,6 +2,7 @@ import React, { Component, PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { fetchToday, selectToday, invalidateToday } from '../actions/today'
 import Deals from '../components/Deals'
+import TextField from 'material-ui/lib/text-field'
 import CategoryPicker from '../components/CategoryPicker'
 
 class TodayApp extends Component {
@@ -11,6 +12,7 @@ class TodayApp extends Component {
     this.loadMore = this.loadMore.bind(this)
     this.changeCategory = this.changeCategory.bind(this)
     this.handleRefreshClick = this.handleRefreshClick.bind(this)
+    this.changeKeyword = this.changeKeyword.bind(this)
   }
 
   componentDidMount () {
@@ -25,6 +27,10 @@ class TodayApp extends Component {
     }
   }
 
+  componentWillUpdate () {
+    console.log(this)
+  }
+
   loadMore () {
     const { dispatch, query } = this.props
     dispatch(fetchToday(query))
@@ -34,6 +40,15 @@ class TodayApp extends Component {
     const { dispatch, query } = this.props
     dispatch(invalidateToday())
     dispatch(selectToday(Object.assign({}, query, { category: category })))
+  }
+
+  changeKeyword (event) {
+    if (event.key === 'Enter') {
+      const { dispatch, query } = this.props
+      dispatch(invalidateToday())
+      let value = event.target.value
+      dispatch(selectToday(Object.assign({}, query, { q: value === '' ? undefined : value })))
+    }
   }
 
   handleRefreshClick (category) {
@@ -47,18 +62,19 @@ class TodayApp extends Component {
     return (
       <div>
         <div className='clearfix'>
-          <div className='pull-right'><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
+            <TextField hintText='Suchbegriff' floatingLabelText='Suchen' onKeyPress={this.changeKeyword} className='pull-left'/>
+            <div className='pull-right' style={{marginTop: 16}}><CategoryPicker value={query.category} onChange={this.changeCategory}/></div>
         </div>
         <p>
           {lastUpdated &&
             <span>
-              Last updated at {new Date(lastUpdated).toLocaleTimeString()}.
+              Geladen um {new Date(lastUpdated).toLocaleTimeString()} Uhr.
               {' '}
             </span>
           }
           {!isFetching &&
             <a href='#' onClick={this.handleRefreshClick}>
-              Refresh
+              Aktualisieren
             </a>
           }
         </p>
@@ -68,7 +84,7 @@ class TodayApp extends Component {
           </div>
         }
         {!isFetching && items.length === 0 &&
-          <h2>Empty.</h2>
+          <h4>Nichts gefunden :-(</h4>
         }
         {items.length > 0 &&
           <div>

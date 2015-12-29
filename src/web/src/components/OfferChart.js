@@ -1,4 +1,3 @@
-import moment from 'moment'
 import _ from 'lodash'
 import React, { PropTypes, Component } from 'react'
 import { Line } from 'react-chartjs'
@@ -23,7 +22,7 @@ export default class OfferChart extends Component {
 
     let filtered = offers.filter(offer => offer.minDealPrice != null)
     let chartData = {
-      labels: _.map(filtered, offer => moment(offer.startsAt).format('DD.MM.YYYY')),
+      labels: _.map(filtered, offer => new Date(offer.startsAt).toLocaleDateString()),
       datasets: [{
         label: 'Normalpreis',
         fillColor: 'rgba(151,187,205,0.2)',
