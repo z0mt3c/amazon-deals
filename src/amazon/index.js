@@ -103,11 +103,13 @@ module.exports.register = function (server, options, next) {
         amazon.fetchChunked(amazon.getDeals.bind(amazon), unknownOffers, 100, 1, function (error, data) {
           if (error) {
             server.log(['error', 'fetchChunked'], error)
+          } else if (data == null) {
+            server.log(['error', 'empty'], 'Empty data')
           } else if (data.dealDetails == null) {
             server.log(['error', 'empty'], 'Empty deal data')
           }
 
-          var result = _.reduce(data.dealDetails || [], function (memo, dealDetail) {
+          var result = _.reduce(data && data.dealDetails ? data.dealDetails : [], function (memo, dealDetail) {
             var deal = dealDetail
             deal.categoryIds = Hoek.reach(indexedOffers[deal.dealID], 'categoryIds') || []
             deal.title = fixChars(deal.title)
