@@ -35,11 +35,11 @@ var defaultOptions = {
 }
 
 export default class Amazon {
-  constructor(options) {
+  constructor (options) {
     this.options = Hoek.applyToDefaults(defaultOptions, options)
   }
 
-  getDealMetadata(next) {
+  getDealMetadata (next) {
     var url = this.options.endpoint + '/GetDealMetadata?nocache=' + new Date().getTime()
     var payload = _.extend({
       page: 1,
@@ -69,7 +69,7 @@ export default class Amazon {
     })
   }
 
-  getDealsFor(prefix, next) {
+  getDealsFor (prefix, next) {
     this.getDealMetadata(function (error, data) {
       if (error) {
         return next(error)
@@ -79,7 +79,7 @@ export default class Amazon {
     })
   }
 
-  getDeals(ids, next) {
+  getDeals (ids, next) {
     Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
     var url = this.options.endpoint + '/GetDeals?nocache=' + new Date().getTime()
     var dealTargets = _.map(ids, function (id) {
@@ -103,7 +103,7 @@ export default class Amazon {
     })
   }
 
-  getDealStatus(ids, next) {
+  getDealStatus (ids, next) {
     Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
     var url = this.options.endpoint + '/GetDealStatus?nocache=' + new Date().getTime()
     var dealTargets = _.map(ids, function (id) {
@@ -128,7 +128,7 @@ export default class Amazon {
     })
   }
 
-  fetchChunked(fn, items, pageSize, limit, next) {
+  fetchChunked (fn, items, pageSize, limit, next) {
     var chunks = _.chunk(items, pageSize || 100)
 
     async.mapLimit(chunks, limit || 1, fn, function (error, results) {
@@ -148,7 +148,7 @@ export default class Amazon {
     })
   }
 
-  fetch(prefix, reply) {
+  fetch (prefix, reply) {
     var self = this
     self.getDealsFor(prefix, function (error, data) {
       if (error) {

@@ -98,10 +98,11 @@ module.exports.register = function (server, options, next) {
   }
 
   var notify = function (deal) {
-    var checkMe = [deal.title, deal.teaser, deal.dealID, deal.impressionAsin, deal.teaserAsin, deal.teaser, deal.description].join(';').toLowerCase()
+    var checkList = _.map([deal.dealID, deal.impressionAsin, deal.teaserAsin, deal.teaser], item => _.isString(item) ? item.toLowerCase() : item)
+    var checkStr = [deal.title, deal.teaser, deal.description].join(';').toLowerCase()
     _.each(registeredKeywords, function (keyword) {
       try {
-        if (deal && _.contains(checkMe, keyword.keyword.toLowerCase())) {
+        if (deal && (_.contains(checkStr, keyword.keyword.toLowerCase()) || _.contains(checkList, keyword.keyword.toLowerCase()))) {
           notifyClient(deal, keyword)
         }
       } catch (e) {
