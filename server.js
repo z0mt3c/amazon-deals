@@ -1,5 +1,5 @@
-if (process.env.NEWRELIC_KEY != null) {
-  require('./newrelic')
+if (process.env.NEW_RELIC_LICENSE_KEY != null) {
+  require('newrelic')
 }
 
 import Hapi from 'hapi'
