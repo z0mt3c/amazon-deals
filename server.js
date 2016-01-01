@@ -1,3 +1,7 @@
+if (process.env.NEWRELIC_KEY != null) {
+  require('./newrelic')
+}
+
 import Hapi from 'hapi'
 var pkg = require('./package.json')
 var server = new Hapi.Server({ debug: { request: ['info', 'error'] } })

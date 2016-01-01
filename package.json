@@ -49,6 +49,7 @@
     "moment": "^2.10.6",
     "moment-timezone": "^0.4.1",
     "mongodb": "^2.1.0",
+    "newrelic": "^1.24.1",
     "node-sass": "^3.4.2",
     "node-telegram-bot-api": "^0.17.0",
     "parallelshell": "^2.0.0",
