@@ -1,11 +1,10 @@
 'use strict'
 
-const Boom = require('boom')
 const Bcrypt = require('bcrypt')
 const AuthBearer = require('hapi-auth-bearer-token')
 
 module.exports.register = function (server, options, next) {
-  server.register(AuthBearer, (err) => {
+  server.register(AuthBearer, (error) => {
     server.auth.strategy('apikey', 'bearer-access-token', {
       allowQueryToken: true,
       allowMultipleHeaders: false,
@@ -17,7 +16,7 @@ module.exports.register = function (server, options, next) {
       }
     })
 
-    return next()
+    return next(error)
   })
 }
 
