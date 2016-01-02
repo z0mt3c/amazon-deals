@@ -1,4 +1,6 @@
-import URL from 'url'
+'use strict'
+
+const URL = require('url')
 
 const chars = [
   {key: /Ã¼/g, value: 'ü'},
@@ -65,7 +67,7 @@ const chars = [
   {key: /Â°/g, value: '°'}
 ]
 
-export function fixChars (str) {
+exports.fixChars = function fixChars (str) {
   if (str != null && /Ã|â|Â/g.test(str)) {
     return chars.reduce((memo, replacer) => memo.replace(replacer.key, replacer.value), str)
   }
@@ -73,6 +75,6 @@ export function fixChars (str) {
   return str
 }
 
-export function stripHost (url) {
+exports.stripHost = function stripHost (url) {
   return url != null && url !== '' && url.indexOf('http') !== -1 ? URL.parse(url).path : url
 }

@@ -1,14 +1,18 @@
-import Joi from 'joi'
-import Boom from 'boom'
-import _ from 'lodash'
-import moment from 'moment'
-import async from 'async'
-import xrc from 'x-result-count'
-import { stripHost } from '../amazon/utils'
+'use strict'
+
+const Joi = require('joi')
+const Boom = require('boom')
+const _ = require('lodash')
+const moment = require('moment')
+const async = require('async')
+const xrc = require('x-result-count')
+const utils = require('../amazon/utils')
+
+console.log(utils.stripHost)
 
 module.exports.register = function (server, options, next) {
-  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
-  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
+  let items = server.plugins['hapi-mongodb-profiles'].collection('items')
+  let offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
 
   server.route({
     method: 'GET',
@@ -24,11 +28,11 @@ module.exports.register = function (server, options, next) {
         })
       },
       handler: function (request, reply) {
-        var page = { skip: request.query.skip }
-        var query = {}
+        let page = { skip: request.query.skip }
+        let query = {}
 
-        var q = request.query.q
-        var conditions = []
+        let q = request.query.q
+        let conditions = []
         if (q) {
           conditions.push({_id: q})
           conditions.push({'title': { $regex: q, $options: 'i' }})
@@ -62,8 +66,8 @@ module.exports.register = function (server, options, next) {
               page.count = results.length
 
               reply(_.map(results, function (item) {
-                item.primaryImage = stripHost(item.primaryImage)
-                item.teaserImage = stripHost(item.teaserImage)
+                item.primaryImage = utils.stripHost(item.primaryImage)
+                item.teaserImage = utils.stripHost(item.teaserImage)
                 return item
               })).header('x-result-count', xrc.generate(page))
             })
@@ -88,17 +92,17 @@ module.exports.register = function (server, options, next) {
         })
       },
       handler: function (request, reply) {
-        var page = { skip: request.query.skip }
-        var since = request.query.since || moment().startOf('day').toDate()
-        var until = request.query.until || moment(since).add(1, 'day').startOf('day').toDate()
-        var mquery = {
+        let page = { skip: request.query.skip }
+        let since = request.query.since || moment().startOf('day').toDate()
+        let until = request.query.until || moment(since).add(1, 'day').startOf('day').toDate()
+        let mquery = {
           startsAt: {
             $gte: since,
             $lt: until
           }
         }
 
-        var q = request.query.q
+        let q = request.query.q
         if (q) {
           let conditions = mquery['$or'] = []
           conditions.push({_id: q})
@@ -110,7 +114,7 @@ module.exports.register = function (server, options, next) {
           mquery.categoryIds = request.query.category + ''
         }
 
-        var query = offers.find(mquery)
+        let query = offers.find(mquery)
           .sort({ startsAt: 1 })
 
         query.count(function (error, total) {

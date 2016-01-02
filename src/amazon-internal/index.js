@@ -1,10 +1,11 @@
-import Joi from 'joi'
-import Boom from 'boom'
-import _ from 'lodash'
-import data from './data.js'
-import async from 'async'
-import { fixChars } from '../amazon/utils.js'
-import Bcrypt from 'bcrypt'
+'use strict'
+
+const Joi = require('joi')
+const Boom = require('boom')
+const _ = require('lodash')
+const data = require('./data.js')
+const async = require('async')
+const utils = require('../amazon/utils.js')
 
 module.exports.register = function (server, options, next) {
   var client = server.plugins.amazon.client
@@ -160,8 +161,9 @@ module.exports.register = function (server, options, next) {
           }
 
           async.mapLimit(found, 2, function (item, next) {
-            items.update({ _id: item._id }, { $set: { title: fixChars(item.title) } }, function (error, result) {
-              return next(null, { title: fixChars(item.title), result: result.result, error: error != null })
+            let fixedTitle = utils.fixChars(item.title)
+            items.update({ _id: item._id }, { $set: { title: fixedTitle } }, function (error, result) {
+              return next(null, { title: fixedTitle, result: result.result, error: error != null })
             })
           }, function (error, result) {
             reply(error || result)

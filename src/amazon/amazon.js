@@ -1,10 +1,12 @@
-import Wreck from 'wreck'
-import _ from 'lodash'
-import Hoek from 'hoek'
-import async from 'async'
-import Boom from 'boom'
+'use strict'
 
-var wreckOptions = {
+const Wreck = require('wreck')
+const _ = require('lodash')
+const Hoek = require('hoek')
+const async = require('async')
+const Boom = require('boom')
+
+const wreckOptions = {
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -16,7 +18,7 @@ var wreckOptions = {
   json: true
 }
 
-var defaultOptions = {
+const defaultOptions = {
   requestMetadata: {
     'marketplaceID': 'A1PA6795UKMFR9',
     'clientID': 'goldbox',
@@ -34,145 +36,145 @@ var defaultOptions = {
   pickFields: ['dealID', 'description', 'msToEnd', 'msToFeatureEnd', 'msToStart', 'primeAccessType', 'primeAccessDuration', 'teaser', 'teaserAsin', 'teaserImage', 'title', 'type', 'items']
 }
 
-export default class Amazon {
-  constructor (options) {
-    this.options = Hoek.applyToDefaults(defaultOptions, options)
-  }
+module.exports = class Amazon {
+constructor(options) {
+  this.options = Hoek.applyToDefaults(defaultOptions, options)
+}
 
-  getDealMetadata (next) {
-    var url = this.options.endpoint + '/GetDealMetadata?nocache=' + new Date().getTime()
-    var payload = _.extend({
-      page: 1,
-      dealsPerPage: 1,
-      itemResponseSize: 'NONE',
-      queryProfile: {
-        featuredOnly: false,
-        dealTypes: [
-          'LIGHTNING_DEAL'
-        ],
-        inclusiveTargetValues: [
-          { name: 'MARKETING_ID', value: '!norsdl' },
-          { name: 'MARKETING_ID', value: '!exclusion' }
-        ]
-      }
-    }, _.pick(this.options, ['requestMetadata', 'widgetContext']))
+getDealMetadata(next) {
+  let url = this.options.endpoint + '/GetDealMetadata?nocache=' + new Date().getTime()
+  let payload = _.extend({
+    page: 1,
+    dealsPerPage: 1,
+    itemResponseSize: 'NONE',
+    queryProfile: {
+      featuredOnly: false,
+      dealTypes: [
+        'LIGHTNING_DEAL'
+      ],
+      inclusiveTargetValues: [
+        { name: 'MARKETING_ID', value: '!norsdl' },
+        { name: 'MARKETING_ID', value: '!exclusion' }
+      ]
+    }
+  }, _.pick(this.options, ['requestMetadata', 'widgetContext']))
 
-    var options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
-    options.payload = JSON.stringify(payload)
+  let options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
+  options.payload = JSON.stringify(payload)
 
-    Wreck.post(url, options, function (error, res, payload) {
-      if (error) {
-        return next(error)
-      }
+  Wreck.post(url, options, function (error, res, payload) {
+    if (error) {
+      return next(error)
+    }
 
-      return next(null, payload)
-    })
-  }
+    return next(null, payload)
+  })
+}
 
-  getDealsFor (prefix, next) {
-    this.getDealMetadata(function (error, data) {
-      if (error) {
-        return next(error)
-      }
-      var deals = Hoek.reach(data, prefix)
-      return next(null, deals)
-    })
-  }
+getDealsFor(prefix, next) {
+  this.getDealMetadata(function (error, data) {
+    if (error) {
+      return next(error)
+    }
+    let deals = Hoek.reach(data, prefix)
+    return next(null, deals)
+  })
+}
 
-  getDeals (ids, next) {
-    Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
-    var url = this.options.endpoint + '/GetDeals?nocache=' + new Date().getTime()
-    var dealTargets = _.map(ids, function (id) {
-      return { dealID: id }
-    })
-    var payload = _.extend({
-      dealTargets: dealTargets,
-      responseSize: 'ALL',
-      itemResponseSize: 'NONE'
-    }, _.pick(this.options, ['requestMetadata']))
+getDeals(ids, next) {
+  Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
+  let url = this.options.endpoint + '/GetDeals?nocache=' + new Date().getTime()
+  let dealTargets = _.map(ids, function (id) {
+    return { dealID: id }
+  })
+  let payload = _.extend({
+    dealTargets: dealTargets,
+    responseSize: 'ALL',
+    itemResponseSize: 'NONE'
+  }, _.pick(this.options, ['requestMetadata']))
 
-    var options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
-    options.payload = JSON.stringify(payload)
+  let options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
+  options.payload = JSON.stringify(payload)
 
-    Wreck.post(url, options, function (error, res, payload) {
-      if (error) {
-        return next(error)
-      }
+  Wreck.post(url, options, function (error, res, payload) {
+    if (error) {
+      return next(error)
+    }
 
-      return next(null, payload)
-    })
-  }
+    return next(null, payload)
+  })
+}
 
-  getDealStatus (ids, next) {
-    Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
-    var url = this.options.endpoint + '/GetDealStatus?nocache=' + new Date().getTime()
-    var dealTargets = _.map(ids, function (id) {
-      return { dealID: id, itemIDs: null }
-    })
+getDealStatus(ids, next) {
+  Hoek.assert(!!ids || ids.length < 100, 'Only 100 dealIds per call allowed')
+  let url = this.options.endpoint + '/GetDealStatus?nocache=' + new Date().getTime()
+  let dealTargets = _.map(ids, function (id) {
+    return { dealID: id, itemIDs: null }
+  })
 
-    var payload = _.extend({
-      dealTargets: dealTargets,
-      responseSize: 'STATUS_ONLY',
-      itemResponseSize: 'NONE'
-    }, _.pick(this.options, ['requestMetadata']))
+  let payload = _.extend({
+    dealTargets: dealTargets,
+    responseSize: 'STATUS_ONLY',
+    itemResponseSize: 'NONE'
+  }, _.pick(this.options, ['requestMetadata']))
 
-    var options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
-    options.payload = JSON.stringify(payload)
+  let options = Hoek.applyToDefaults(wreckOptions, this.options.wreck || {})
+  options.payload = JSON.stringify(payload)
 
-    Wreck.post(url, options, function (error, res, payload) {
-      if (error) {
-        return next(error)
-      }
+  Wreck.post(url, options, function (error, res, payload) {
+    if (error) {
+      return next(error)
+    }
 
-      return next(null, payload)
-    })
-  }
+    return next(null, payload)
+  })
+}
 
-  fetchChunked (fn, items, pageSize, limit, next) {
-    var chunks = _.chunk(items, pageSize || 100)
+fetchChunked(fn, items, pageSize, limit, next) {
+  let chunks = _.chunk(items, pageSize || 100)
 
-    async.mapLimit(chunks, limit || 1, fn, function (error, results) {
-      if (error) {
-        return next(error)
-      }
+  async.mapLimit(chunks, limit || 1, fn, function (error, results) {
+    if (error) {
+      return next(error)
+    }
 
-      return next(error, _.reduce(results, function (memo, result) {
-        _.each(_.keys(result), function (key) {
-          if (result[key]) {
-            memo[key] = _.extend(memo[key] || {}, result[key])
-          }
-        })
+    return next(error, _.reduce(results, function (memo, result) {
+      _.each(_.keys(result), function (key) {
+        if (result[key]) {
+          memo[key] = _.extend(memo[key] || {}, result[key])
+        }
+      })
 
-        return memo
-      }, {}))
-    })
-  }
+      return memo
+    }, {}))
+  })
+}
 
-  fetch (prefix, reply) {
-    var self = this
-    self.getDealsFor(prefix, function (error, data) {
+fetch(prefix, reply) {
+  let self = this
+  self.getDealsFor(prefix, function (error, data) {
+    if (error) {
+      return reply(Boom.badImplementation('Error fetching deals', error))
+    }
+
+    self.fetchChunked(self.getDeals.bind(self), data, 100, 1, function (error, data) {
       if (error) {
         return reply(Boom.badImplementation('Error fetching deals', error))
       }
 
-      self.fetchChunked(self.getDeals.bind(self), data, 100, 1, function (error, data) {
-        if (error) {
-          return reply(Boom.badImplementation('Error fetching deals', error))
-        }
+      let result = _.reduce(data.dealDetails, function (memo, dealDetail) {
+        let deal = _.pick(dealDetail, self.options.pickFields)
+        deal.status = data.dealStatus[dealDetail.dealID]
+        memo.push(deal)
+        return memo
+      }, [])
 
-        var result = _.reduce(data.dealDetails, function (memo, dealDetail) {
-          var deal = _.pick(dealDetail, self.options.pickFields)
-          deal.status = data.dealStatus[dealDetail.dealID]
-          memo.push(deal)
-          return memo
-        }, [])
-
-        result = _.sortBy(result, 'msToStart')
-        var replying = reply(result)
-        if (replying && _.isFunction(replying.header)) {
-          replying.header('x-result-count', result.length)
-        }
-      })
+      result = _.sortBy(result, 'msToStart')
+      let replying = reply(result)
+      if (replying && _.isFunction(replying.header)) {
+        replying.header('x-result-count', result.length)
+      }
     })
-  }
+  })
+}
 }

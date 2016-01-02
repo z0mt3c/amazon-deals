@@ -1,36 +1,37 @@
-// import Joi from 'joi'
-import Amazon from './amazon'
-// import Boom from 'boom'
-import async from 'async'
-import _ from 'lodash'
-import moment from 'moment'
-import { CronJob } from 'cron'
-import Hoek from 'hoek'
-import { fixChars, stripHost } from './utils'
+'use strict'
+
+const Amazon = require('./amazon')
+const async = require('async')
+const _ = require('lodash')
+const moment = require('moment')
+const Hoek = require('hoek')
+const utils = require('./utils')
+const cron = require('cron')
+const CronJob = cron.CronJob
 
 const pickForOffer = ['title', 'maxBAmount', 'startsAt', 'endsAt', 'maxCurrentPrice', 'maxDealPrice', 'maxListPrice', 'maxPercentOff', 'maxPrevPrice', 'minBAmount', 'minCurrentPrice', 'minDealPrice', 'minListPrice', 'minPercentOff', 'minPrevPrice', 'type', 'currencyCode']
 const pickForItem = ['title', 'teaser', 'teaserImage', 'primaryImage', 'description', 'egressUrl', 'reviewAsin', 'reviewRating', 'totalReviews', 'itemType', 'isFulfilledByAmazon', 'updatedAt']
 
 module.exports.register = function (server, options, next) {
-  var deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
+  let deals = server.plugins['hapi-mongodb-profiles'].collection('deals')
   deals.ensureIndex({'prices': 1}, function () {})
   deals.ensureIndex({'prices.dealID': 1}, function () {})
   deals.ensureIndex({'prices.itemID': 1}, function () {})
   deals.ensureIndex({'title': 1}, function () {})
 
-  var items = server.plugins['hapi-mongodb-profiles'].collection('items')
+  let items = server.plugins['hapi-mongodb-profiles'].collection('items')
 
-  var offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
+  let offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
   offers.ensureIndex({'startsAt': 1}, function () {})
   offers.ensureIndex({'itemId': 1}, function () {})
 
-  var updates = []
-  var lastUpdate
-  var keepLastUpdatesCount = 100
-  var amazon = new Amazon({})
+  let updates = []
+  let lastUpdate
+  let keepLastUpdatesCount = 100
+  let amazon = new Amazon({})
   server.expose('client', amazon)
 
-  var internals = {
+  let internals = {
     notify: function notify (deal) {
       server.log([ 'deal' ], deal)
     },
@@ -53,7 +54,7 @@ module.exports.register = function (server, options, next) {
         }
 
         server.log(['info'], 'Updating metadata')
-        var dealsByCategory = data ? data.dealsByCategory : {}
+        let dealsByCategory = data ? data.dealsByCategory : {}
 
         _.each(dealsByCategory, function (memo, dealIds, categoryId) {
           _.each(dealIds, function (dealId) {
@@ -61,7 +62,7 @@ module.exports.register = function (server, options, next) {
           })
         }, [])
 
-        var offerStatus = {
+        let offerStatus = {
           modified: 0,
           upserted: 0,
           error: 0
@@ -95,11 +96,11 @@ module.exports.register = function (server, options, next) {
           server.log(['error', 'offersFind'], error)
         }
 
-        var unknownOffers = _.pluck(docs, '_id')
-        var indexedOffers = _.indexBy(docs, '_id')
+        let unknownOffers = _.pluck(docs, '_id')
+        let indexedOffers = _.indexBy(docs, '_id')
         server.log(['info'], 'Processing ' + unknownOffers.length + ' unknown offers')
 
-        var offset = new Date().getTime()
+        let offset = new Date().getTime()
         amazon.fetchChunked(amazon.getDeals.bind(amazon), unknownOffers, 100, 1, function (error, data) {
           if (error) {
             server.log(['error', 'fetchChunked'], error)
@@ -109,16 +110,16 @@ module.exports.register = function (server, options, next) {
             server.log(['error', 'empty'], 'Empty deal data')
           }
 
-          var result = _.reduce(data && data.dealDetails ? data.dealDetails : [], function (memo, dealDetail) {
-            var deal = dealDetail
+          let result = _.reduce(data && data.dealDetails ? data.dealDetails : [], function (memo, dealDetail) {
+            let deal = dealDetail
             deal.categoryIds = Hoek.reach(indexedOffers[deal.dealID], 'categoryIds') || []
-            deal.title = fixChars(deal.title)
-            deal.teaser = fixChars(deal.teaser)
-            deal.description = fixChars(deal.description)
+            deal.title = utils.fixChars(deal.title)
+            deal.teaser = utils.fixChars(deal.teaser)
+            deal.description = utils.fixChars(deal.description)
             deal.status = data.dealStatus[dealDetail.dealID]
-            deal.teaserImage = stripHost(deal.teaserImage)
-            deal.teaserImage = stripHost(deal.teaserImage)
-            deal.primaryImage = stripHost(deal.primaryImage)
+            deal.teaserImage = utils.stripHost(deal.teaserImage)
+            deal.teaserImage = utils.stripHost(deal.teaserImage)
+            deal.primaryImage = utils.stripHost(deal.primaryImage)
             deal.startsAt = moment(offset + deal.msToStart).add(1, 'minute').startOf('minute').toDate()
             deal.endsAt = moment(offset + deal.msToEnd).add(1, 'minute').startOf('minute').toDate()
             deal.updatedAt = new Date()
@@ -128,14 +129,14 @@ module.exports.register = function (server, options, next) {
 
           server.log(['info'], 'Offer/Item details loaded')
 
-          var offerStatus = {
+          let offerStatus = {
             modified: 0,
             upserted: 0,
             error: 0
           }
 
           async.eachLimit(result, 1, function (deal, next) {
-            var set = _.pick(deal, pickForOffer)
+            let set = _.pick(deal, pickForOffer)
             set.itemId = deal.impressionAsin || deal.teaserAsin
 
             offers.updateOne({ _id: deal.dealID }, { $set: set }, function (error, r) {
@@ -156,14 +157,14 @@ module.exports.register = function (server, options, next) {
             server.log(['info', 'update'], { msg: 'All offers updated', status: offerStatus })
           })
 
-          var articleStatus = {
+          let articleStatus = {
             modified: 0,
             upserted: 0,
             error: 0
           }
 
           async.eachLimit(result, 1, function (deal, next) {
-            var updateData = _.pick(deal, pickForItem)
+            let updateData = _.pick(deal, pickForItem)
             items.update({ _id: deal.impressionAsin || deal.teaserAsin }, { $set: updateData, $addToSet: { categoryIds: { $each: deal.categoryIds } }, $setOnInsert: { createdAt: new Date() } }, { upsert: true }, function (error, r) {
               if (error) {
                 articleStatus.error += 1
@@ -182,7 +183,7 @@ module.exports.register = function (server, options, next) {
     }
   }
 
-  var cronActive = (options.active !== false)
+  let cronActive = (options.active !== false)
 
   this.jobMeta = new CronJob(options.cronExpressionMeta || '30 */15 8-22 * * *', function () {
     server.log(['info'], 'Trigger loadMetadata')
@@ -210,10 +211,10 @@ module.exports.register = function (server, options, next) {
     config: {
       tags: ['api'],
       handler: function (request, reply) {
-        var currentDate = new Date()
-        var hours = currentDate.getHours()
-        var diff = currentDate.getTime() - lastUpdate.time.getTime()
-        var reverse = updates.slice(0)
+        let currentDate = new Date()
+        let hours = currentDate.getHours()
+        let diff = currentDate.getTime() - lastUpdate.time.getTime()
+        let reverse = updates.slice(0)
         reverse.reverse()
         reply(reverse).code(hours > 8 && hours < 21 && diff > 3600000 ? 501 : 200)
       }

@@ -1,6 +1,13 @@
-import Hapi from 'hapi'
-var pkg = require('./package.json')
-var server = new Hapi.Server({ debug: { request: ['info', 'error'] } })
+'use strict'
+
+if (process.env.NEW_RELIC_LICENSE_KEY != null) {
+  require('newrelic')
+}
+
+const Hapi = require('hapi')
+const pkg = require('./package.json')
+
+let server = new Hapi.Server({ debug: { request: ['info', 'error'] } })
 server.connection({
   port: process.env.PORT || 5000,
   labels: ['api'],
