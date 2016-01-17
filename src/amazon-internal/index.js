@@ -20,7 +20,7 @@ module.exports.register = function (server, options, next) {
       tags: ['api', 'internal'],
       validate: {
         params: Joi.object({
-          categoryId: Joi.string().valid(_.pluck(data.categories, 'nodeId'))
+          categoryId: Joi.string().valid(_.map(data.categories, 'nodeId'))
         })
       },
       handler: function (request, reply) {

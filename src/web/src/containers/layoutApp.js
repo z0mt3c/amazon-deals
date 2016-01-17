@@ -3,7 +3,7 @@ import LeftNav from 'material-ui/lib/left-nav'
 import MenuItem from 'material-ui/lib/menus/menu-item'
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { pushPath } from 'redux-simple-router'
+import { routeActions } from 'redux-simple-router'
 
 var LayoutApp = React.createClass({
   getInitialState () {
@@ -13,7 +13,7 @@ var LayoutApp = React.createClass({
   },
 
   browse (page) {
-    this.props.dispatch(pushPath(page))
+    this.props.push(page)
     this.setState({ open: false })
   },
 
@@ -29,9 +29,12 @@ var LayoutApp = React.createClass({
   },
 
   propTypes: {
-    dispatch: PropTypes.func.isRequired,
+    push: PropTypes.func.isRequired,
     children: PropTypes.object
   }
 })
 
-export default connect()(LayoutApp)
+export default connect(
+  null,
+ { push: routeActions.push }
+)(LayoutApp)

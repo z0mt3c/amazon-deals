@@ -1,6 +1,6 @@
 import React, { PropTypes, Component } from 'react'
 import { connect } from 'react-redux'
-import { pushPath } from 'redux-simple-router'
+import { routeActions } from 'redux-simple-router'
 
 // import Divider from 'material-ui/lib/divider'
 // import ListItem from 'material-ui/lib/lists/list-item'
@@ -25,7 +25,7 @@ class Deals extends Component {
             image = image.replace(/\.jpg$/ig, '._SL400_SL84_.jpg')
           }
 
-          memo.push(<li className='collection-item avatar' key={post._id} onClick={() => dispatch(pushPath('/item/' + post._id))} style={{minHeight: 64}}>
+          memo.push(<li className='collection-item avatar' key={post._id} onClick={() => dispatch(routeActions.push('/item/' + post._id))} style={{minHeight: 64}}>
             {image ? <img src={image} className='circle'/> : null}
             <span className='title'>{post.title}</span>
             <p>

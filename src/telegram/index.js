@@ -104,7 +104,7 @@ module.exports.register = function (server, options, next) {
     let checkStr = [deal.title, deal.teaser, deal.description].join(';').toLowerCase()
     _.each(registeredKeywords, function (keyword) {
       try {
-        if (deal && (_.contains(checkStr, keyword.keyword.toLowerCase()) || _.contains(checkList, keyword.keyword.toLowerCase()))) {
+        if (deal && (_.includes(checkStr, keyword.keyword.toLowerCase()) || _.includes(checkList, keyword.keyword.toLowerCase()))) {
           notifyClient(deal, keyword)
         }
       } catch (e) {

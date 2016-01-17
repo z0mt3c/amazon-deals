@@ -96,8 +96,8 @@ module.exports.register = function (server, options, next) {
           server.log(['error', 'offersFind'], error)
         }
 
-        let unknownOffers = _.pluck(docs, '_id')
-        let indexedOffers = _.indexBy(docs, '_id')
+        let unknownOffers = _.map(docs, '_id')
+        let indexedOffers = _.keyBy(docs, '_id')
         server.log(['info'], 'Processing ' + unknownOffers.length + ' unknown offers')
 
         let offset = new Date().getTime()

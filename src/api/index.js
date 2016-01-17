@@ -8,8 +8,6 @@ const async = require('async')
 const xrc = require('x-result-count')
 const utils = require('../amazon/utils')
 
-console.log(utils.stripHost)
-
 module.exports.register = function (server, options, next) {
   let items = server.plugins['hapi-mongodb-profiles'].collection('items')
   let offers = server.plugins['hapi-mongodb-profiles'].collection('offers')
