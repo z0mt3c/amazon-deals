@@ -122,27 +122,32 @@ module.exports.register = function (server, options, next) {
 
           page.total = total
 
-          query
-            .skip(request.query.skip)
-            .limit(request.query.limit)
-            .toArray(function (error, docs) {
-              if (error) {
-                return reply(Boom.badImplementation('Error fetching deals', error))
+          offers.aggregate([
+            { '$match': mquery },
+            { '$sort': { startsAt: 1 } },
+            { '$skip': request.query.skip },
+            { '$limit': request.query.limit },
+            {
+              '$lookup': {
+                from: 'items',
+                localField: 'itemId',
+                foreignField: '_id',
+                as: 'item'
               }
+            },
+            { '$unwind': '$item' }
+          ], function (error, docs) {
+            if (error) return reply(Boom.badImplementation('Error fetching deals', error))
 
-              async.mapLimit(docs, 5, function (offer, next) {
-                items.findOne({ _id: offer.itemId }, function (error, item) {
-                  next(error, _.extend({}, item, { offer: offer }))
-                })
-              }, function (error, mapped) {
-                if (error) {
-                  return reply(Boom.badImplementation('Error fetching deals', error))
-                }
-
-                page.count = docs.length
-                return reply(mapped).header('x-result-count', xrc.generate(page))
-              })
+            let mapped = docs.map(doc => {
+              let item = doc.item
+              delete doc.item
+              return Object.assign({}, item, { offer: doc })
             })
+
+            page.count = docs.length
+            return reply(mapped).header('x-result-count', xrc.generate(page))
+          })
         })
       }
     }
