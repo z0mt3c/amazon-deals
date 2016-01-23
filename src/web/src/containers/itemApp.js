@@ -11,10 +11,10 @@ class ItemApp extends Component {
   }
 
   render () {
-    const { item } = this.props
+    const { item, isFetching } = this.props
     return (
       <div>
-        <Item item={item}/>
+        <Item item={item} isFetching={isFetching}/>
       </div>
     )
   }

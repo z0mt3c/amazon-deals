@@ -57,5 +57,6 @@ export default class Item extends Component {
 }
 
 Item.propTypes = {
-  item: PropTypes.object.isRequired
+  item: PropTypes.object.isRequired,
+  isFetching: PropTypes.bool.isRequired
 }
