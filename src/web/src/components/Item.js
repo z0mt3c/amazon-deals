@@ -4,7 +4,7 @@ import OfferChart from './OfferChart'
 
 export default class Item extends Component {
   render () {
-    const { item } = this.props
+    const { item, isFetching } = this.props
 
     if (item && item._id) {
       const url = `http://anonym.to/?${item.egressUrl}`
@@ -46,6 +46,10 @@ export default class Item extends Component {
       <br/><br/>
       </div>
       )
+    } else if (isFetching) {
+      return (<div className='progress'>
+         <div className='indeterminate'></div>
+      </div>)
     } else {
       return <div>Not found</div>
     }
