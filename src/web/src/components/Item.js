@@ -7,7 +7,8 @@ export default class Item extends Component {
     const { item, isFetching } = this.props
 
     if (item && item._id) {
-      const url = `http://anonym.to/?${item.egressUrl}`
+      const amazonLink = item.egressUrl || `http://www.amazon.de/gp/product/${item._id}`
+      const url = `http://anonym.to/?${amazonLink}`
       return (
       <div>
       <h4>{item.title}</h4>
