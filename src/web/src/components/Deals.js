@@ -5,6 +5,12 @@ import { routeActions } from 'redux-simple-router'
 // import Divider from 'material-ui/lib/divider'
 // import ListItem from 'material-ui/lib/lists/list-item'
 import moment from 'moment'
+require('moment/locale/de')
+moment.locale('de')
+
+function titleCase (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
 
 class Deals extends Component {
   render () {
@@ -13,10 +19,10 @@ class Deals extends Component {
     return (
       <ul className='collection with-header'>
         {deals.reduce((memo, post, i) => {
-          const time = moment(post.offer.startsAt).format('HH:mm')
+          const time = titleCase(moment(post.offer.startsAt).calendar())
 
           if (lastTime !== time) {
-            memo.push(<li key={'header_' + time} className='collection-header' style={{ backgroundColor: '#00bcd4', color: 'white' }}><h5>Ab {time} Uhr</h5></li>)
+            memo.push(<li key={'header_' + time} className='collection-header' style={{ backgroundColor: '#00bcd4', color: 'white' }}><h5>{time}</h5></li>)
             lastTime = time
           }
 

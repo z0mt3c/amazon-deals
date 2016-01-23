@@ -92,7 +92,7 @@ module.exports.register = function (server, options, next) {
       handler: function (request, reply) {
         let page = { skip: request.query.skip }
         let since = request.query.since || moment().startOf('day').toDate()
-        let until = request.query.until || moment(since).add(1, 'day').startOf('day').toDate()
+        let until = request.query.until || moment(since).add(3, 'day').startOf('day').toDate()
         let mquery = {
           startsAt: {
             $gte: since,
