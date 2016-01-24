@@ -90,7 +90,7 @@ module.exports.register = function (server, options, next) {
     })
   })
 
-  const urlPrefix = process.URL_PREFIX || server.info.uri
+  const urlPrefix = process.env.URL_PREFIX || server.info.uri
 
   let notifyClient = function (deal, keyword) {
     server.log(['info'], 'Sending notifications for ' + deal.title)
