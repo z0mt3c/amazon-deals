@@ -92,10 +92,13 @@ module.exports.register = function (server, options, next) {
 
   let notifyClient = function (deal, keyword) {
     server.log(['info'], 'Sending notifications for ' + deal.title)
+    const dealUrl = `${server.info.uri}/item/${deal.itemId}`
+    const amazonUrl = deal.egressUrl || `http://www.amazon.de/gp/product/${deal.impressionAsin}`
+    const startsAt = moment(deal.startsAt).tz('Europe/Berlin').format('DD.MM.YYYY HH:mm')
     if (deal.minDealPrice != null) {
-      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "'\n" + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' starting at ' + moment(deal.startsAt).tz('Europe/Berlin').format('DD.MM.YYYY HH:mm') + '\n' + deal.egressUrl)
+      bot.sendMessage(keyword.client, "Deal-Alert for '" + keyword.keyword + "'\n" + deal.title + ' for ' + deal.minDealPrice + ' ' + deal.currencyCode + ' starting at ' + startsAt + '\n' + dealUrl + '\n' + amazonUrl)
     } else {
-      bot.sendMessage(keyword.client, "Deal-Alert for Keyword '" + keyword.keyword + "'\n" + deal.title + ' starting at ' + moment(deal.startsAt).tz('Europe/Berlin').format('DD.MM.YYYY HH:mm') + '\nhttp://www.amazon.de/gp/product/' + deal.impressionAsin)
+      bot.sendMessage(keyword.client, "Deal-Alert for Keyword '" + keyword.keyword + "'\n" + deal.title + ' starting at ' + startsAt + '\n' + dealUrl + '\n' + amazonUrl)
     }
   }
 

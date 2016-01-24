@@ -10,6 +10,8 @@ const pkg = require('./package.json')
 let server = new Hapi.Server({ debug: { request: ['info', 'error'] } })
 server.connection({
   port: process.env.PORT || 5000,
+  host: process.env.HOST,
+  address: process.env.ADDRESS,
   labels: ['api'],
   router: {
     stripTrailingSlash: false
@@ -116,7 +118,7 @@ server.register([
       throw error
     }
     server.start(function () {
-      server.log(['info'], 'Listening at http://localhost:5000')
+      server.log(['info'], 'Listening at ' + server.info.uri)
     })
   })
 })
