@@ -20,12 +20,10 @@ const reducer = combineReducers(Object.assign({}, reducers, {
 }))
 
 const reduxRouterMiddleware = syncHistory(browserHistory)
-const createStoreWithMiddleware = applyMiddleware(
-  reduxRouterMiddleware,
-  thunkMiddleware,
-  createLogger()
-)(createStore)
-const store = createStoreWithMiddleware(reducer)
+const store = createStore(
+ reducer,
+ applyMiddleware(reduxRouterMiddleware, thunkMiddleware, createLogger())
+)
 
 import injectTapEventPlugin from 'react-tap-event-plugin'
 injectTapEventPlugin()
